@@ -78,7 +78,7 @@ export default async function DashboardPage() {
 
         {/* Certificate CTA */}
         {allDone ? (
-          <Link href="/certificate" className="flex items-center gap-4 p-5 rounded-xl border border-[#00e676]/30 bg-[#00e676]/5 mb-6 hover:bg-[#00e676]/8 transition-colors">
+          <Link href="/profile" className="flex items-center gap-4 p-5 rounded-xl border border-[#00e676]/30 bg-[#00e676]/5 mb-6 hover:bg-[#00e676]/8 transition-colors">
             <div className="text-3xl">🎓</div>
             <div>
               <div className="font-syne font-semibold text-[#00e676]">Course Complete!</div>
