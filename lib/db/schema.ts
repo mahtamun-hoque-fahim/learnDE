@@ -1,5 +1,6 @@
 import { pgTable, serial, text, timestamp, integer, boolean, json } from 'drizzle-orm/pg-core'
 
+// ── Core users (students) ──────────────────────────────────────────────────
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
@@ -9,36 +10,44 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
-export const studentProfiles = pgTable('student_profiles', {
+// ── Staff: admins + moderators ─────────────────────────────────────────────
+export const staffUsers = pgTable('staff_users', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  username: text('username').notNull().unique(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
+  role: text('role').notNull().default('moderator'), // 'admin' | 'moderator'
   displayName: text('display_name').notNull(),
-  university: text('university').notNull(),
-  department: text('department').notNull(),
-  batch: text('batch'),
-  gender: text('gender').notNull(), // 'male' | 'female' | 'other'
-  createdAt: timestamp('created_at').defaultNow(),
-})
-
-export const quotes = pgTable('quotes', {
-  id: serial('id').primaryKey(),
-  text: text('text').notNull(),
-  author: text('author'),
-  // Targeting: if null = applies to all; otherwise matches value
-  targetGender: text('target_gender'),      // 'male' | 'female' | 'other' | null
-  targetDepartment: text('target_department'), // e.g. 'CSE' | null
-  priority: integer('priority').default(0), // higher = preferred
   active: boolean('active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
 })
 
-export const adminUsers = pgTable('admin_users', {
+// ── Student certificate registration submissions ────────────────────────────
+// Status flow: pending → under_review → approved | rejected
+export const certSubmissions = pgTable('cert_submissions', {
   id: serial('id').primaryKey(),
-  username: text('username').notNull().unique(),
-  password: text('password').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  // Form fields filled by student
+  displayName: text('display_name').notNull(),
+  university: text('university').notNull(),
+  department: text('department').notNull(),
+  batch: text('batch'),
+  gender: text('gender').notNull(),         // 'male' | 'female' | 'other'
+  phone: text('phone'),
+  studentIdNo: text('student_id_no'),
+  note: text('note'),                        // optional note from student
+  // Review state
+  status: text('status').notNull().default('pending'), // 'pending' | 'under_review' | 'approved' | 'rejected'
+  reviewedBy: integer('reviewed_by').references(() => staffUsers.id),
+  reviewNote: text('review_note'),           // moderator's note/feedback
+  reviewedAt: timestamp('reviewed_at'),
+  // Quote assigned by moderator
+  quoteText: text('quote_text'),
+  quoteAuthor: text('quote_author'),
+  submittedAt: timestamp('submitted_at').defaultNow(),
 })
 
+// ── Completion progress & quizzes (existing) ───────────────────────────────
 export const progress = pgTable('progress', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -58,11 +67,16 @@ export const quizAttempts = pgTable('quiz_attempts', {
   attemptedAt: timestamp('attempted_at').defaultNow(),
 })
 
+// ── Issued certificates (only created on approval) ────────────────────────
 export const certificates = pgTable('certificates', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
+  submissionId: integer('submission_id').notNull().references(() => certSubmissions.id),
+  certificateId: text('certificate_id').notNull().unique(), // e.g. LDE-2025-XXXXX
   issuedAt: timestamp('issued_at').defaultNow(),
-  certificateId: text('certificate_id').notNull().unique(),
-  quoteId: integer('quote_id').references(() => quotes.id),
-  profileSnapshot: json('profile_snapshot'), // snapshot at issue time
+  // Snapshot of student data at approval time
+  profileSnapshot: json('profile_snapshot'),
+  // The personal quote from moderator
+  quoteText: text('quote_text'),
+  quoteAuthor: text('quote_author'),
 })
