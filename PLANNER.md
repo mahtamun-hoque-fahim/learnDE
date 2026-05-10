@@ -1,159 +1,303 @@
-# LearnD.E. — PLANNER.md
+# PLANNER.md — LearnD.E.
 
-## Project Overview
-**Purpose:** Interactive differential equations learning platform for BSc (Hons.) CSE 2nd semester students  
-**Target User:** University CSE students preparing for exams on H.K. Dass §3.9–3.11  
-**Key Value:** Read chapters with rendered math → take quizzes → get AI bonus problems → earn certificate
+> Living technical document. Updated whenever `update repo` is triggered.
+> Last updated: 2025-05-10
+
+---
+
+## Overview
+
+| Field | Value |
+|---|---|
+| Project | LearnD.E. |
+| Purpose | Interactive Differential Equations learning platform for CSE 2nd semester students, based on H.K. Dass §3.9–3.11 |
+| Target User | University students (primarily CSE), course moderators, and admins |
+| Key Value | Learn → Quiz → Get certified, with human-verified certificates and personally written quotes |
+| Status | 🔄 In Progress |
+| Repo | `https://github.com/mahtamun-hoque-fahim/learnDE` |
+| Live URL | `https://learnde.vercel.app` |
 
 ---
 
 ## Architecture
-**Stack:** Next.js 16 App Router · TypeScript · Tailwind CSS · Neon (PostgreSQL) · Drizzle ORM · Vercel  
-**Auth:** JWT cookies via `jose` (httpOnly, 7 days)  
-**AI:** Claude API (`claude-sonnet-4-20250514`) for bonus problems and cheat sheet  
-**Math:** KaTeX loaded from CDN, rendered client-side  
-**Deployment:** Vercel (connect to GitHub)
 
-### Folder Structure
+**Stack:**
+- Framework: Next.js 16 App Router (TypeScript)
+- Styling: Tailwind CSS
+- Database: Neon (PostgreSQL) via Drizzle ORM + `@neondatabase/serverless`
+- Auth: Custom JWT (jose) — student cookie `auth-token` (7d), staff cookie `staff-token` (8h)
+- Email: Resend (lazy-instantiated to avoid build-time crash)
+- Math rendering: KaTeX (CDN)
+- Deployment: Vercel
+
+**Folder Structure:**
 ```
-app/
-├── page.tsx              ← Landing page
-├── layout.tsx            ← Root layout (fonts, KaTeX link)
-├── globals.css
-├── (auth)/
-│   ├── login/page.tsx
-│   └── register/page.tsx
-├── learn/
-│   ├── page.tsx          ← Chapter list with progress
-│   └── [chapter]/page.tsx ← Chapter reader
-├── quiz/
-│   └── [chapter]/page.tsx ← Quiz + bonus problems
-├── dashboard/page.tsx    ← User progress dashboard
-├── certificate/page.tsx  ← Certificate display
-├── cheatsheet/page.tsx   ← AI cheat sheet generator
-└── api/
-    ├── auth/(login|register|logout|session)
-    ├── progress/
-    ├── quiz/
-    ├── bonus/            ← Claude API → 3 bonus problems
-    ├── certificate/
-    └── cheatsheet/       ← Claude API → quick reference
-lib/
-├── auth.ts               ← signToken, verifyToken, getSession
-├── chapters.ts           ← CHAPTERS data (8 chapters, all content)
-├── quiz-data.ts          ← QUIZ_QUESTIONS (5 per chapter)
-└── db/
-    ├── index.ts          ← Edge-compatible Neon connection
-    └── schema.ts         ← users, progress, quizAttempts, certificates
+/
+├── app/
+│   ├── (auth)/              # Login + Register pages
+│   ├── admin/               # Redirects → /staff
+│   ├── api/
+│   │   ├── auth/            # Student login, logout, register, session
+│   │   ├── admin/           # migrate (DB setup), setup (first admin)
+│   │   ├── staff/           # auth, submissions (CRUD), moderators (CRUD)
+│   │   ├── submissions/     # Student: submit form + get own status
+│   │   ├── certificate/     # Backwards-compat cert lookup
+│   │   ├── quiz/            # Submit quiz answers, record attempt
+│   │   ├── progress/        # Mark chapter as read
+│   │   ├── bonus/           # Static bonus problems
+│   │   └── cheatsheet/      # Static cheat sheet
+│   ├── certificate/         # Both certificates (completion + quote)
+│   ├── cheatsheet/          # Cheat sheet page
+│   ├── dashboard/           # Student dashboard
+│   ├── learn/[chapter]/     # Chapter reading page
+│   ├── learn/               # Chapter list
+│   ├── profile/             # Certificate registration form
+│   ├── quiz/[chapter]/      # Quiz page (10 daily-randomized questions)
+│   ├── staff/               # Unified admin + moderator dashboard
+│   ├── layout.tsx
+│   └── page.tsx             # Landing page
+├── lib/
+│   ├── auth.ts              # Student JWT helpers
+│   ├── staff-auth.ts        # Staff JWT helpers
+│   ├── email.ts             # Resend email (lazy init)
+│   ├── chapters.ts          # Chapter metadata array
+│   ├── quiz-data.ts         # 80 questions (10/ch), getDailyQuestions()
+│   ├── bonus-data.ts        # 5 bonus problems per chapter (static)
+│   └── db/
+│       ├── index.ts         # getDb() lazy Neon/Drizzle client
+│       └── schema.ts        # All table definitions
+├── PLANNER.md
+├── DESIGN_GUIDE.md
+└── README.md
 ```
 
 ---
 
 ## User Flows
 
-### Guest user
-1. Land on homepage → see 8 chapters listed
-2. Click any chapter → read full content with rendered math, expandable examples
-3. Click "Take quiz" → answer 5 MCQs → see score (not saved)
-4. No certificate available (must sign in)
+### Flow 1: Student — Learning
+1. Register at `/register` → login at `/login` → `auth-token` cookie set
+2. `/dashboard` shows chapter progress + quiz progress
+3. Read chapter at `/learn/[chapter]` → marked complete
+4. Take quiz at `/quiz/[chapter]` → 10 questions (seeded daily) → score saved
+5. Repeat for all 8 chapters
 
-### Signed-in user
-1. Register/Login → redirected to Dashboard
-2. Dashboard shows per-chapter read + quiz status
-3. Read chapter → click "Mark as read" → saved to DB
-4. Take quiz → submit → score saved; if passed, unlock bonus problems (Claude-generated)
-5. After all 8 read + all 8 passed → Certificate page becomes available
-6. Certificate issued with unique ID and date
+### Flow 2: Student — Certificate Application
+1. All 8 chapters read + all 8 quizzes passed → dashboard: "Course Complete!"
+2. Click → `/profile` — fill registration form (name, university, dept, batch, gender, phone, student ID, note)
+3. Submit → status: **pending** → all active staff emailed
+4. Dashboard shows status: Pending / Under Review / Approved / Rejected
+5. Rejected → student sees reason → can resubmit
+6. Approved → two certificate cards appear on dashboard
+
+### Flow 3: Student — Certificate View
+1. `/certificate` shows two documents:
+   - **① Certificate of Completion** — name, university, dept, batch, cert ID, date
+   - **② Personal Quote Certificate** — quote personally written by moderator
+2. Both print-ready (watermark, corner decorations)
+
+### Flow 4: Moderator — Review Submission
+1. `/staff` → login → sees stat cards (Pending / Under Review / Approved / Rejected)
+2. Click submission row → Review Modal
+3. Modal shows: student info, coursework stats (N/8 read, N/8 passed), student's note
+4. Actions: Mark Under Review → Approve (write quote + author) → Reject (write reason)
+5. Approve: certificate row created, student emailed
+6. Reject: student emailed with reason
+
+### Flow 5: Admin — Staff Management
+1. Same `/staff` login → additional **Staff** tab visible
+2. View all moderators/admins
+3. Add new staff (username, email, password, display name, role)
+4. Suspend / Restore / Promote / Demote any staff member
 
 ---
 
-## DB Schema (Drizzle/Neon)
+## DB Schema
 
-### users
-| Column | Type | Notes |
-|--------|------|-------|
-| id | serial PK | |
-| name | text | |
-| email | text unique | |
-| password | text | bcrypt hashed |
-| student_id | text nullable | optional |
-| created_at | timestamp | defaultNow() |
+```ts
+// users — student accounts
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),     // bcrypt hashed
+  studentId: text('student_id'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
 
-### progress
-| Column | Type | Notes |
-|--------|------|-------|
-| id | serial PK | |
-| user_id | integer FK → users | |
-| chapter_slug | text | e.g. "linear-de" |
-| completed | boolean | default false |
-| completed_at | timestamp nullable | |
+// staff_users — admins + moderators
+export const staffUsers = pgTable('staff_users', {
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
+  role: text('role').notNull().default('moderator'),  // 'admin' | 'moderator'
+  displayName: text('display_name').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+})
 
-### quiz_attempts
-| Column | Type | Notes |
-|--------|------|-------|
-| id | serial PK | |
-| user_id | integer FK → users | |
-| chapter_slug | text | |
-| score | integer | |
-| total | integer | |
-| passed | boolean | score >= 60% |
-| answers | json | user's answer array |
-| attempted_at | timestamp | |
+// cert_submissions — student certificate applications
+// Status: pending → under_review → approved | rejected
+export const certSubmissions = pgTable('cert_submissions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  displayName: text('display_name').notNull(),
+  university: text('university').notNull(),
+  department: text('department').notNull(),
+  batch: text('batch'),
+  gender: text('gender').notNull(),          // 'male' | 'female' | 'other'
+  phone: text('phone'),
+  studentIdNo: text('student_id_no'),
+  note: text('note'),
+  status: text('status').notNull().default('pending'),
+  reviewedBy: integer('reviewed_by').references(() => staffUsers.id),
+  reviewNote: text('review_note'),
+  reviewedAt: timestamp('reviewed_at'),
+  quoteText: text('quote_text'),
+  quoteAuthor: text('quote_author'),
+  submittedAt: timestamp('submitted_at').defaultNow(),
+})
 
-### certificates
-| Column | Type | Notes |
-|--------|------|-------|
-| id | serial PK | |
-| user_id | integer FK → users | |
-| issued_at | timestamp | |
-| certificate_id | text unique | LDE-{timestamp}-{uuid8} |
+// progress — chapter read tracking
+export const progress = pgTable('progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  chapterSlug: text('chapter_slug').notNull(),
+  completed: boolean('completed').default(false),
+  completedAt: timestamp('completed_at'),
+})
+
+// quiz_attempts — quiz submissions
+export const quizAttempts = pgTable('quiz_attempts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  chapterSlug: text('chapter_slug').notNull(),
+  score: integer('score').notNull(),
+  total: integer('total').notNull(),
+  passed: boolean('passed').default(false),
+  answers: json('answers'),
+  attemptedAt: timestamp('attempted_at').defaultNow(),
+})
+
+// certificates — created only on moderator approval
+export const certificates = pgTable('certificates', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  submissionId: integer('submission_id').notNull().references(() => certSubmissions.id),
+  certificateId: text('certificate_id').notNull().unique(),  // LDE-2025-XXXXXXXX
+  issuedAt: timestamp('issued_at').defaultNow(),
+  profileSnapshot: json('profile_snapshot'),  // student data at approval time
+  quoteText: text('quote_text'),
+  quoteAuthor: text('quote_author'),
+})
+```
 
 ---
 
 ## API Routes
 
+### Student Auth
 | Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | /api/auth/register | — | Create account, set cookie |
-| POST | /api/auth/login | — | Login, set cookie |
-| GET | /api/auth/logout | — | Delete cookie, redirect / |
-| GET | /api/auth/session | — | Return current user or null |
-| GET | /api/progress | cookie | Get user's progress + attempts |
-| POST | /api/progress | cookie | Mark chapter as completed |
-| POST | /api/quiz | optional | Submit quiz answers, score & save |
-| POST | /api/bonus | — | Claude API: 3 bonus problems |
-| GET | /api/certificate | cookie | Check eligibility, issue if qualified |
-| POST | /api/cheatsheet | — | Claude API: 5-section cheat sheet |
+|---|---|---|---|
+| POST | `/api/auth/register` | Public | Register student |
+| POST | `/api/auth/login` | Public | Login, set `auth-token` |
+| GET | `/api/auth/logout` | Public | Clear `auth-token` |
+| GET | `/api/auth/session` | Public | Return session user |
+
+### Student Learning
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/progress` | Student | Mark chapter read |
+| POST | `/api/quiz` | Student | Submit answers, record attempt |
+| GET | `/api/bonus` | Public | Static bonus problems |
+| GET | `/api/cheatsheet` | Public | Static cheat sheet content |
+
+### Student Certificate
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/submissions` | Student | Own submission + certificate data |
+| POST | `/api/submissions` | Student | Submit registration form (or resubmit if rejected) |
+| GET | `/api/certificate` | Student | Backwards-compat cert lookup |
+
+### Staff Auth
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/staff/auth` | Public | Staff login, set `staff-token` (8h) |
+| DELETE | `/api/staff/auth` | Public | Staff logout |
+
+### Staff — Submissions
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/staff/submissions` | Staff | All submissions, enriched with coursework stats |
+| PATCH | `/api/staff/submissions` | Staff | `action`: `approve` / `reject` / `under_review` |
+
+### Staff — Moderator Management
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/staff/moderators` | Admin | List all staff |
+| POST | `/api/staff/moderators` | Admin | Add staff member |
+| PATCH | `/api/staff/moderators` | Admin | Toggle active / change role |
+
+### One-Time Setup
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/admin/migrate` | `x-setup-key` header | Create all new DB tables |
+| POST | `/api/admin/setup` | `x-setup-key` header | Create first admin account |
 
 ---
 
 ## Env Vars
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| DATABASE_URL | ✅ | Neon pooled connection |
-| DATABASE_URL_UNPOOLED | ✅ | Neon direct connection (migrations) |
-| JWT_SECRET | ✅ | Random string for JWT signing |
-| NEXT_PUBLIC_APP_URL | ✅ | https://your-domain.vercel.app |
-
-> No Anthropic API key needed — the artifact API proxy handles auth automatically
+| Variable | Required | Description | Example |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ | Neon pooled connection string | `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require` |
+| `JWT_SECRET` | ✅ | Shared secret for student + staff JWTs | `a-long-random-secret` |
+| `RESEND_API_KEY` | ✅ | Resend API key for emails | `re_xxxxxxxxxxxx` |
+| `EMAIL_FROM` | ⚠️ Optional | Sender name + address (must match Resend domain) | `LearnD.E. <noreply@learnde.dev>` |
+| `NEXT_PUBLIC_BASE_URL` | ⚠️ Optional | Public URL for email links | `https://learnde.vercel.app` |
+| `ADMIN_SETUP_KEY` | ⚠️ Optional | Key for migrate + setup endpoints | `learnde-setup-2025` |
 
 ---
 
-## Timeline / Phases
+## Phases & Timeline
 
-| Phase | Status | Tasks |
-|-------|--------|-------|
-| Foundation | ✅ | Next.js setup, Tailwind, fonts, DB schema, auth |
-| Content | ✅ | 8 chapters with full math content (KaTeX), quiz data (40 Qs) |
-| Features | ✅ | Progress tracking, quiz scoring, bonus problems, cheat sheet, certificate |
-| Polish | ✅ | Dark design, responsive layout, build verified |
-| Deploy | ⏳ | Connect Vercel, add Neon env vars, run migrations |
+| Phase | Name | Status | Key Tasks |
+|---|---|---|---|
+| 1 | Foundation | ✅ | Repo, DB, Drizzle, base layout, fonts |
+| 2 | Learning System | ✅ | 8 chapters, reading pages, progress tracking |
+| 3 | Quiz System | ✅ | 80 questions (10/ch), daily randomization, pass/fail (60%) |
+| 4 | Bonus + Cheat Sheet | ✅ | 5 bonus problems/chapter, static cheat sheet |
+| 5 | Student Auth | ✅ | Register, login, JWT cookies, logout |
+| 6 | Certificate Flow | ✅ | Registration form, submission lifecycle, dual cert display |
+| 7 | Staff System | ✅ | Moderator + admin roles, review modal, quote writing |
+| 8 | Email | ✅ | Resend: new submission alerts, approval/rejection emails |
+| 9 | Build Fixes | ✅ | Lazy Resend init, renamed export fix, Vercel build passing |
+| 10 | Polish & Features | 🔄 | See Next Steps |
 
 ---
 
 ## Next Steps
-1. Create Neon project at neon.tech → copy DATABASE_URL and DATABASE_URL_UNPOOLED
-2. Connect repo to Vercel → add all 4 env vars
-3. After first deploy, run migrations: `npx drizzle-kit push` with env set
-4. Test full flow: register → read → quiz → bonus → certificate
+
+> Ordered by priority. Rewritten fresh on each `update repo`.
+
+1. [ ] Add `.env.example` to repo root
+2. [ ] Fix `next.config.ts` — remove deprecated `eslint` key causing build warnings
+3. [ ] Add Next.js middleware to protect `/dashboard`, `/profile`, `/certificate` (redirect if no session)
+4. [ ] Let moderator update quote after approval (reopen flow)
+5. [ ] Send "under review" email to student when status changes from pending
+6. [ ] Student quiz history page — show past attempts + scores per chapter
+7. [ ] Certificate PDF export (html2canvas or Puppeteer API route)
+8. [ ] Pagination for staff submissions list
+9. [ ] Add `DATABASE_URL_UNPOOLED` for Drizzle migrations
+
+---
+
+## Notes / Decisions Log
+
+- **2025-05-10** — Merged `admin_users` into `staff_users` with `role` column — one login page, one cookie, two roles (admin/moderator)
+- **2025-05-10** — Removed pre-set quote bank. Moderators now write a unique personal quote per student at review time
+- **2025-05-10** — Resend lazy init fix: `new Resend()` was running at module load → crashed Next.js build. Moved inside each function
+- **2025-05-10** — Quiz export rename bug: `getQuiz` → `getDailyQuestions` wasn't updated in quiz API route → build error. Fixed in hotfix
+- **2025-05-10** — Rejected submissions reuse same DB row (reset to pending) — students aren't permanently blocked
+- **2025-05-10** — `profileSnapshot` stored in `certificates` row at approval time — certificate stays unchanged if student later edits their profile
