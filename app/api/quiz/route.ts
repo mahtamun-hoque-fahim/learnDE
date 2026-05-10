@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import { quizAttempts } from '@/lib/db/schema'
 import { getSessionFromRequest } from '@/lib/auth'
-import { getQuiz } from '@/lib/quiz-data'
+import { getDailyQuestions } from '@/lib/quiz-data'
 
 export async function POST(req: NextRequest) {
   const session = await getSessionFromRequest(req)
   const { chapterSlug, answers } = await req.json()
 
-  const questions = getQuiz(chapterSlug)
+  const questions = getDailyQuestions(chapterSlug)
   if (!questions.length) return NextResponse.json({ error: 'No quiz for this chapter' }, { status: 404 })
 
   let score = 0
