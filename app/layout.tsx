@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { Syne, Onest } from 'next/font/google'
 import './globals.css'
 
@@ -24,6 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={`${syne.variable} ${onest.variable} font-onest bg-[#080808] text-white antialiased`}>
         {children}
