@@ -83,8 +83,8 @@ export default function Globe({ size = 1400 }: { size?: number }) {
       style={{
         position: 'absolute',
         left: '50%',
-        /* push center of globe (size/2 px from canvas top) to ~hero bottom */
-        bottom: -(size * 0.44),
+        /* top of globe aligns roughly with the "Simplified." line (~50% down hero) */
+        bottom: -(size * 0.73),
         transform: 'translateX(-50%)',
         width: size,
         height: size,
