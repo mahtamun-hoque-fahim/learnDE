@@ -1,4 +1,4 @@
-# DESIGN_GUIDE.md — dy/dx Learn
+# DESIGN_GUIDE.md — LearnDE
 
 > Living design system reference. Updated when new components or tokens are added.
 > Last updated: 2026-05-13
@@ -9,7 +9,7 @@
 
 | | Value |
 |---|---|
-| Name | dy/dx Learn |
+| Name | LearnDE |
 | Logo | `public/logo.svg` — custom SVG mark (dy over dx with fraction bar) |
 | Logo variants | `LogoFull` (mark + divider + "Learn" wordmark) — landing page only; `LogoMark` (mark only) — all inner pages |
 | Tagline | "Differential Equations. Simplified." |

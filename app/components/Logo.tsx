@@ -11,7 +11,7 @@ interface LogoProps {
 export function LogoMark({ size = 36, href = '/' }: { size?: number; href?: string }) {
   return (
     <Link href={href} style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
-      <Image src="/logo.svg" alt="dy/dx Learn" width={size} height={size} priority style={{ display: 'block' }} />
+      <Image src="/logo.svg" alt="LearnDE" width={size} height={size} priority style={{ display: 'block' }} />
     </Link>
   )
 }
@@ -20,17 +20,17 @@ export function LogoMark({ size = 36, href = '/' }: { size?: number; href?: stri
 export function LogoFull({ size = 44, href = '/' }: { size?: number; href?: string }) {
   return (
     <Link href={href} style={{ display: 'inline-flex', alignItems: 'center', gap: 18, textDecoration: 'none', flexShrink: 0 }}>
-      <Image src="/logo.svg" alt="dy/dx Learn" width={size} height={size} priority style={{ display: 'block' }} />
+      <Image src="/logo.svg" alt="LearnDE" width={size} height={size} priority style={{ display: 'block' }} />
       {/* vertical divider */}
       <div style={{ width: 1.5, height: size * 0.9, background: 'rgba(255,255,255,0.25)', borderRadius: 1, flexShrink: 0 }} />
       {/* wordmark */}
       <span style={{
         fontWeight: 800,
-        fontSize: size * 0.75,
+        fontSize: size * 0.62,
         letterSpacing: '-0.03em',
         color: '#fff',
         lineHeight: 1,
-      }}>Learn</span>
+      }}>LearnDE</span>
     </Link>
   )
 }

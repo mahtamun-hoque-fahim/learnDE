@@ -1,4 +1,4 @@
-# dy/dx Learn
+# LearnDE
 
 Interactive Differential Equations course for CSE 2nd semester — read chapters, take quizzes, earn a human-verified certificate.
 

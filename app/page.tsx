@@ -141,7 +141,7 @@ export default async function HomePage() {
         <div className="foot-inner">
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <LogoMark size={24} />
-            <span>© 2026 dy/dx Learn · Built for CSE 2nd Semester</span>
+            <span>© 2026 LearnDE · Built for CSE 2nd Semester</span>
           </div>
           <div className="foot-links">
             {['About','Curriculum','Reference'].map(l => <Link key={l} href="/">{l}</Link>)}

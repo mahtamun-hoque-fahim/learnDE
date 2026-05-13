@@ -16,7 +16,7 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'dy/dx · Differential Equations, simplified',
+  title: 'LearnDE · Differential Equations, simplified',
   description: 'Interactive differential equations learning platform for CSE 2nd Semester. Read chapters, take quizzes, earn certificates.',
 }
 

@@ -35,7 +35,7 @@ function Login({ onLogin }: { onLogin: (info: StaffInfo) => void }) {
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-xl bg-[#00e676]/10 border border-[#00e676]/20 flex items-center justify-center mx-auto mb-4 text-2xl">⚙️</div>
           <h1 className="font-syne font-bold text-xl text-white">Staff Portal</h1>
-          <p className="text-white/40 text-sm mt-1">LearnD.E. — Admin & Moderator Access</p>
+          <p className="text-white/40 text-sm mt-1">LearnDE — Admin & Moderator Access</p>
         </div>
         <div className="space-y-3">
           <input type="text" placeholder="Username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} onKeyDown={e => e.key === 'Enter' && submit()} className="w-full px-4 py-3 rounded-xl bg-white/4 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#00e676]/40"/>

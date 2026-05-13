@@ -8,8 +8,8 @@ const FAQS = [
     category: 'About the Course',
     items: [
       {
-        q: 'What is dy/dx Learn?',
-        a: 'dy/dx Learn is a free, interactive course on Differential Equations built specifically for BSc (Hons.) CSE 2nd-semester students. It covers 8 focused chapters, each with in-depth explanations, worked examples, and quizzes — and issues a verified certificate when you complete everything.',
+        q: 'What is LearnDE?',
+        a: 'LearnDE is a free, interactive course on Differential Equations built specifically for BSc (Hons.) CSE 2nd-semester students. It covers 8 focused chapters, each with in-depth explanations, worked examples, and quizzes — and issues a verified certificate when you complete everything.',
       },
       {
         q: 'What textbook is this based on?',
@@ -93,7 +93,7 @@ const FAQS = [
       },
       {
         q: 'Who built this?',
-        a: 'dy/dx Learn was built as a focused learning tool for CSE students. It uses Next.js, Neon PostgreSQL, KaTeX for math rendering, and d3-geo for the globe on the home page. The design is intentionally minimal so the math stays front and center.',
+        a: 'LearnDE was built as a focused learning tool for CSE students. It uses Next.js, Neon PostgreSQL, KaTeX for math rendering, and d3-geo for the globe on the home page. The design is intentionally minimal so the math stays front and center.',
       },
     ],
   },
@@ -158,7 +158,7 @@ export default function FAQPage() {
             Frequently asked<br /><em style={{ fontStyle: 'normal', color: 'var(--mint)' }}>questions.</em>
           </h1>
           <p style={{ fontSize: 16, color: 'var(--muted)', margin: 0, lineHeight: 1.6 }}>
-            Everything you need to know about dy/dx Learn, the quizzes, and the certificate.
+            Everything you need to know about LearnDE, the quizzes, and the certificate.
           </p>
         </div>
 

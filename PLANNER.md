@@ -1,4 +1,4 @@
-# PLANNER.md — dy/dx Learn
+# PLANNER.md — LearnDE
 
 > Living technical document. Updated whenever `update repo` is triggered.
 > Last updated: 2026-05-13
@@ -9,7 +9,7 @@
 
 | Field | Value |
 |---|---|
-| Project | dy/dx Learn (formerly LearnD.E.) |
+| Project | LearnDE (formerly LearnDE) |
 | Purpose | Interactive Differential Equations learning platform for CSE 2nd semester students, based on H.K. Dass §3.9–3.11 |
 | Target User | University students (primarily CSE), course moderators, admins |
 | Key Value | Learn → Quiz → Get certified, with human-verified certificates and personally written quotes |
@@ -264,7 +264,7 @@ export const certificates = pgTable('certificates', {
 | `DATABASE_URL` | ✅ | Neon pooled connection string | `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require` |
 | `JWT_SECRET` | ✅ | Shared secret for student + staff JWTs | `a-long-random-secret-min-32-chars` |
 | `RESEND_API_KEY` | ✅ | Resend API key for emails | `re_xxxxxxxxxxxx` |
-| `EMAIL_FROM` | ⚠️ Optional | Sender name + address | `dy/dx Learn <noreply@learnde.dev>` |
+| `EMAIL_FROM` | ⚠️ Optional | Sender name + address | `LearnDE <noreply@learnde.dev>` |
 | `NEXT_PUBLIC_BASE_URL` | ⚠️ Optional | Public URL for email links | `https://learn-differential-equation.vercel.app` |
 | `ADMIN_SETUP_KEY` | ⚠️ Optional | Key for migrate + setup endpoints | `learnde-setup-2025` |
 
@@ -312,7 +312,7 @@ export const certificates = pgTable('certificates', {
 - **2025-05-10** — Quiz export rename: `getQuiz` → `getDailyQuestions`
 - **2025-05-10** — Rejected submissions reuse same DB row (reset to pending)
 - **2025-05-10** — `profileSnapshot` stored in `certificates` at approval time
-- **2026-05-13** — Brand renamed: LearnD.E. → dy/dx Learn. Custom SVG logo (public/logo.svg)
+- **2026-05-13** — Brand renamed: LearnDE → LearnDE. Custom SVG logo (public/logo.svg)
 - **2026-05-13** — KaTeX was CSS-only (JS missing). Fixed by adding `<Script strategy="beforeInteractive">`
 - **2026-05-13** — Replaced `data-math + contentRef` batch render with per-element `KatexBlock`/`KatexInline` components to eliminate empty-box artifacts
 - **2026-05-13** — `/learn` (course overview) renamed to `/curriculum`; old `/learn` redirects. Individual chapter pages remain at `/learn/[chapter]`
