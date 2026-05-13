@@ -1,7 +1,7 @@
-# PLANNER.md — LearnD.E.
+# PLANNER.md — dy/dx Learn
 
 > Living technical document. Updated whenever `update repo` is triggered.
-> Last updated: 2025-05-10
+> Last updated: 2026-05-13
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Field | Value |
 |---|---|
-| Project | LearnD.E. |
+| Project | dy/dx Learn (formerly LearnD.E.) |
 | Purpose | Interactive Differential Equations learning platform for CSE 2nd semester students, based on H.K. Dass §3.9–3.11 |
-| Target User | University students (primarily CSE), course moderators, and admins |
+| Target User | University students (primarily CSE), course moderators, admins |
 | Key Value | Learn → Quiz → Get certified, with human-verified certificates and personally written quotes |
 | Status | 🔄 In Progress |
 | Repo | `https://github.com/mahtamun-hoque-fahim/learnDE` |
-| Live URL | `https://learnde.vercel.app` |
+| Live URL | `https://learn-differential-equation.vercel.app` |
 
 ---
 
@@ -23,18 +23,19 @@
 
 **Stack:**
 - Framework: Next.js 16 App Router (TypeScript)
-- Styling: Tailwind CSS
+- Styling: Tailwind CSS + CSS custom properties (no Tailwind component classes in layouts)
 - Database: Neon (PostgreSQL) via Drizzle ORM + `@neondatabase/serverless`
 - Auth: Custom JWT (jose) — student cookie `auth-token` (7d), staff cookie `staff-token` (8h)
 - Email: Resend (lazy-instantiated to avoid build-time crash)
-- Math rendering: KaTeX (CDN)
+- Math rendering: KaTeX (CDN via `<Script strategy="beforeInteractive">`)
+- Globe: `d3-geo` + `topojson-client` + world-atlas CDN (animated geo-wireframe)
 - Deployment: Vercel
 
 **Folder Structure:**
 ```
 /
 ├── app/
-│   ├── (auth)/              # Login + Register pages
+│   ├── (auth)/              # Login + Register pages (split-pane layout)
 │   ├── admin/               # Redirects → /staff
 │   ├── api/
 │   │   ├── auth/            # Student login, logout, register, session
@@ -44,28 +45,39 @@
 │   │   ├── certificate/     # Backwards-compat cert lookup
 │   │   ├── quiz/            # Submit quiz answers, record attempt
 │   │   ├── progress/        # Mark chapter as read
-│   │   ├── bonus/           # Static bonus problems
+│   │   ├── bonus/           # Static bonus problems (AI-generated)
 │   │   └── cheatsheet/      # Static cheat sheet
-│   ├── certificate/         # Both certificates (completion + quote)
+│   ├── certificate/         # Both certificates (completion + quote) — premium design
 │   ├── cheatsheet/          # Cheat sheet page
+│   ├── components/
+│   │   ├── Globe.tsx        # d3-geo animated globe (Bangladesh highlighted)
+│   │   └── Logo.tsx         # LogoFull (landing) + LogoMark (inner pages)
+│   ├── curriculum/          # Course overview (was /learn) — ChapterList client component
+│   │   ├── page.tsx         # Server component (data fetch)
+│   │   └── ChapterList.tsx  # Client component (LaTeX summaries, progress bar)
 │   ├── dashboard/           # Student dashboard
-│   ├── learn/[chapter]/     # Chapter reading page
-│   ├── learn/               # Chapter list
+│   ├── faq/                 # FAQ page (17 questions, 5 categories, accordion)
+│   ├── learn/
+│   │   ├── page.tsx         # Redirects → /curriculum
+│   │   └── [chapter]/       # Chapter reading page (3-col: TOC + article + rail)
 │   ├── profile/             # Certificate registration form
-│   ├── quiz/[chapter]/      # Quiz page (10 daily-randomized questions)
+│   ├── quiz/[chapter]/      # Quiz page (10 daily-randomized questions, KaTeX rendered)
 │   ├── staff/               # Unified admin + moderator dashboard
-│   ├── layout.tsx
-│   └── page.tsx             # Landing page
+│   ├── layout.tsx           # Plus Jakarta Sans + JetBrains Mono, KaTeX script
+│   └── page.tsx             # Landing page (globe, hero, chapter table, FAQ/CTA)
 ├── lib/
 │   ├── auth.ts              # Student JWT helpers
 │   ├── staff-auth.ts        # Staff JWT helpers
 │   ├── email.ts             # Resend email (lazy init)
-│   ├── chapters.ts          # Chapter metadata array
+│   ├── chapters.ts          # Chapter metadata array (8 chapters)
 │   ├── quiz-data.ts         # 80 questions (10/ch), getDailyQuestions()
 │   ├── bonus-data.ts        # 5 bonus problems per chapter (static)
 │   └── db/
 │       ├── index.ts         # getDb() lazy Neon/Drizzle client
 │       └── schema.ts        # All table definitions
+├── public/
+│   └── logo.svg             # Custom dy/dx SVG logo mark
+├── .env.example             # ✅ Added
 ├── PLANNER.md
 ├── DESIGN_GUIDE.md
 └── README.md
@@ -76,11 +88,12 @@
 ## User Flows
 
 ### Flow 1: Student — Learning
-1. Register at `/register` → login at `/login` → `auth-token` cookie set
-2. `/dashboard` shows chapter progress + quiz progress
-3. Read chapter at `/learn/[chapter]` → marked complete
-4. Take quiz at `/quiz/[chapter]` → 10 questions (seeded daily) → score saved
-5. Repeat for all 8 chapters
+1. Land at `/` → hero with animated globe → click "Get Started"
+2. Register at `/register` → login at `/login` → `auth-token` cookie set
+3. `/curriculum` shows all 8 chapters with LaTeX summaries + Read/Quiz buttons
+4. Read chapter at `/learn/[chapter]` → 3-column layout (TOC + article + progress rail)
+5. Take quiz at `/quiz/[chapter]` → 10 questions (seeded daily) → KaTeX-rendered → score saved
+6. Repeat for all 8 chapters
 
 ### Flow 2: Student — Certificate Application
 1. All 8 chapters read + all 8 quizzes passed → dashboard: "Course Complete!"
@@ -88,27 +101,24 @@
 3. Submit → status: **pending** → all active staff emailed
 4. Dashboard shows status: Pending / Under Review / Approved / Rejected
 5. Rejected → student sees reason → can resubmit
-6. Approved → two certificate cards appear on dashboard
+6. Approved → two premium certificates appear at `/certificate`
 
 ### Flow 3: Student — Certificate View
 1. `/certificate` shows two documents:
-   - **① Certificate of Completion** — name, university, dept, batch, cert ID, date
-   - **② Personal Quote Certificate** — quote personally written by moderator
-2. Both print-ready (watermark, corner decorations)
+   - **① Certificate of Completion** — gradient name, corner marks, glowing divider, seal
+   - **② Personal Quote Certificate** — custom quote + author written by moderator
+2. Both print-ready + Download PDF button
 
 ### Flow 4: Moderator — Review Submission
-1. `/staff` → login → sees stat cards (Pending / Under Review / Approved / Rejected)
+1. `/staff` → login → stat cards (Pending / Under Review / Approved / Rejected)
 2. Click submission row → Review Modal
-3. Modal shows: student info, coursework stats (N/8 read, N/8 passed), student's note
-4. Actions: Mark Under Review → Approve (write quote + author) → Reject (write reason)
-5. Approve: certificate row created, student emailed
-6. Reject: student emailed with reason
+3. Actions: Mark Under Review → Approve (write quote + author) → Reject (write reason)
+4. Approve: certificate row created, student emailed
+5. Reject: student emailed with reason
 
 ### Flow 5: Admin — Staff Management
-1. Same `/staff` login → additional **Staff** tab visible
-2. View all moderators/admins
-3. Add new staff (username, email, password, display name, role)
-4. Suspend / Restore / Promote / Demote any staff member
+1. Same `/staff` login → additional **Staff** tab
+2. View, add, suspend, restore, promote, demote staff members
 
 ---
 
@@ -146,7 +156,7 @@ export const certSubmissions = pgTable('cert_submissions', {
   university: text('university').notNull(),
   department: text('department').notNull(),
   batch: text('batch'),
-  gender: text('gender').notNull(),          // 'male' | 'female' | 'other'
+  gender: text('gender').notNull(),
   phone: text('phone'),
   studentIdNo: text('student_id_no'),
   note: text('note'),
@@ -187,7 +197,7 @@ export const certificates = pgTable('certificates', {
   submissionId: integer('submission_id').notNull().references(() => certSubmissions.id),
   certificateId: text('certificate_id').notNull().unique(),  // LDE-2025-XXXXXXXX
   issuedAt: timestamp('issued_at').defaultNow(),
-  profileSnapshot: json('profile_snapshot'),  // student data at approval time
+  profileSnapshot: json('profile_snapshot'),
   quoteText: text('quote_text'),
   quoteAuthor: text('quote_author'),
 })
@@ -217,7 +227,7 @@ export const certificates = pgTable('certificates', {
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/submissions` | Student | Own submission + certificate data |
-| POST | `/api/submissions` | Student | Submit registration form (or resubmit if rejected) |
+| POST | `/api/submissions` | Student | Submit form (or resubmit if rejected) |
 | GET | `/api/certificate` | Student | Backwards-compat cert lookup |
 
 ### Staff Auth
@@ -229,7 +239,7 @@ export const certificates = pgTable('certificates', {
 ### Staff — Submissions
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/staff/submissions` | Staff | All submissions, enriched with coursework stats |
+| GET | `/api/staff/submissions` | Staff | All submissions with coursework stats |
 | PATCH | `/api/staff/submissions` | Staff | `action`: `approve` / `reject` / `under_review` |
 
 ### Staff — Moderator Management
@@ -242,7 +252,7 @@ export const certificates = pgTable('certificates', {
 ### One-Time Setup
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/admin/migrate` | `x-setup-key` header | Create all new DB tables |
+| POST | `/api/admin/migrate` | `x-setup-key` header | Create all DB tables |
 | POST | `/api/admin/setup` | `x-setup-key` header | Create first admin account |
 
 ---
@@ -252,10 +262,10 @@ export const certificates = pgTable('certificates', {
 | Variable | Required | Description | Example |
 |---|---|---|---|
 | `DATABASE_URL` | ✅ | Neon pooled connection string | `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require` |
-| `JWT_SECRET` | ✅ | Shared secret for student + staff JWTs | `a-long-random-secret` |
+| `JWT_SECRET` | ✅ | Shared secret for student + staff JWTs | `a-long-random-secret-min-32-chars` |
 | `RESEND_API_KEY` | ✅ | Resend API key for emails | `re_xxxxxxxxxxxx` |
-| `EMAIL_FROM` | ⚠️ Optional | Sender name + address (must match Resend domain) | `LearnD.E. <noreply@learnde.dev>` |
-| `NEXT_PUBLIC_BASE_URL` | ⚠️ Optional | Public URL for email links | `https://learnde.vercel.app` |
+| `EMAIL_FROM` | ⚠️ Optional | Sender name + address | `dy/dx Learn <noreply@learnde.dev>` |
+| `NEXT_PUBLIC_BASE_URL` | ⚠️ Optional | Public URL for email links | `https://learn-differential-equation.vercel.app` |
 | `ADMIN_SETUP_KEY` | ⚠️ Optional | Key for migrate + setup endpoints | `learnde-setup-2025` |
 
 ---
@@ -273,7 +283,10 @@ export const certificates = pgTable('certificates', {
 | 7 | Staff System | ✅ | Moderator + admin roles, review modal, quote writing |
 | 8 | Email | ✅ | Resend: new submission alerts, approval/rejection emails |
 | 9 | Build Fixes | ✅ | Lazy Resend init, renamed export fix, Vercel build passing |
-| 10 | Polish & Features | 🔄 | See Next Steps |
+| 10 | V2 Design Overhaul | ✅ | New brand (dy/dx), fonts, colors, globe, auth split-pane, 3-col reader, premium cert |
+| 11 | Math Rendering | ✅ | KaTeX fix (Script tag), per-element KatexBlock/KatexInline, quiz unicode→LaTeX converter |
+| 12 | Navigation & Routes | ✅ | Logo variants, /curriculum route, FAQ page, chapter card upgrades |
+| 13 | Polish & Features | 🔄 | See Next Steps |
 
 ---
 
@@ -281,23 +294,28 @@ export const certificates = pgTable('certificates', {
 
 > Ordered by priority. Rewritten fresh on each `update repo`.
 
-1. [ ] Add `.env.example` to repo root
-2. [ ] Fix `next.config.ts` — remove deprecated `eslint` key causing build warnings
-3. [ ] Add Next.js middleware to protect `/dashboard`, `/profile`, `/certificate` (redirect if no session)
-4. [ ] Let moderator update quote after approval (reopen flow)
-5. [ ] Send "under review" email to student when status changes from pending
-6. [ ] Student quiz history page — show past attempts + scores per chapter
-7. [ ] Certificate PDF export (html2canvas or Puppeteer API route)
-8. [ ] Pagination for staff submissions list
-9. [ ] Add `DATABASE_URL_UNPOOLED` for Drizzle migrations
+1. [ ] Add Next.js middleware to protect `/dashboard`, `/profile`, `/certificate` (redirect if no session)
+2. [ ] Send "under review" email when submission status changes from pending
+3. [ ] Student quiz history page — show past attempts + scores per chapter
+4. [ ] Let moderator re-edit quote after approval
+5. [ ] Certificate PDF export (html2canvas or Puppeteer API route)
+6. [ ] Staff submissions pagination
+7. [ ] Add `DATABASE_URL_UNPOOLED` for Drizzle migrations
 
 ---
 
 ## Notes / Decisions Log
 
-- **2025-05-10** — Merged `admin_users` into `staff_users` with `role` column — one login page, one cookie, two roles (admin/moderator)
-- **2025-05-10** — Removed pre-set quote bank. Moderators now write a unique personal quote per student at review time
-- **2025-05-10** — Resend lazy init fix: `new Resend()` was running at module load → crashed Next.js build. Moved inside each function
-- **2025-05-10** — Quiz export rename bug: `getQuiz` → `getDailyQuestions` wasn't updated in quiz API route → build error. Fixed in hotfix
-- **2025-05-10** — Rejected submissions reuse same DB row (reset to pending) — students aren't permanently blocked
-- **2025-05-10** — `profileSnapshot` stored in `certificates` row at approval time — certificate stays unchanged if student later edits their profile
+- **2025-05-10** — Merged `admin_users` into `staff_users` with `role` column
+- **2025-05-10** — Removed pre-set quote bank. Moderators write unique quotes per student
+- **2025-05-10** — Resend lazy init fix: moved `new Resend()` inside each function
+- **2025-05-10** — Quiz export rename: `getQuiz` → `getDailyQuestions`
+- **2025-05-10** — Rejected submissions reuse same DB row (reset to pending)
+- **2025-05-10** — `profileSnapshot` stored in `certificates` at approval time
+- **2026-05-13** — Brand renamed: LearnD.E. → dy/dx Learn. Custom SVG logo (public/logo.svg)
+- **2026-05-13** — KaTeX was CSS-only (JS missing). Fixed by adding `<Script strategy="beforeInteractive">`
+- **2026-05-13** — Replaced `data-math + contentRef` batch render with per-element `KatexBlock`/`KatexInline` components to eliminate empty-box artifacts
+- **2026-05-13** — `/learn` (course overview) renamed to `/curriculum`; old `/learn` redirects. Individual chapter pages remain at `/learn/[chapter]`
+- **2026-05-13** — Globe: real geo-wireframe via d3-geo + world-atlas. Bangladesh (ISO 50) highlighted with mint glow
+- **2026-05-13** — Quiz math: two-strategy system — `injectMath()` for question sentences, `processOption()` for pure-math answers
+- **2026-05-13** — FAQ page: 17 questions across 5 categories with accordion UI

@@ -1,232 +1,247 @@
-# DESIGN_GUIDE.md — LearnD.E.
+# DESIGN_GUIDE.md — dy/dx Learn
 
 > Living design system reference. Updated when new components or tokens are added.
-> Last updated: 2025-05-10
+> Last updated: 2026-05-13
+
+---
+
+## Brand
+
+| | Value |
+|---|---|
+| Name | dy/dx Learn |
+| Logo | `public/logo.svg` — custom SVG mark (dy over dx with fraction bar) |
+| Logo variants | `LogoFull` (mark + divider + "Learn" wordmark) — landing page only; `LogoMark` (mark only) — all inner pages |
+| Tagline | "Differential Equations. Simplified." |
 
 ---
 
 ## Color Tokens
 
-| Token | Tailwind / Hex | Usage |
+Defined in `globals.css` as CSS custom properties.
+
+| Token | Hex | Usage |
 |---|---|---|
-| Background | `#080808` | Page background (slightly darker than standard `#0a0a0a`) |
-| Surface | `white/4` → `white/8` | Cards, panels, hover states |
-| Border | `white/5` → `white/15` | Dividers, card outlines |
-| Accent | `#00e676` | CTAs, active states, progress bars, cert borders |
-| Accent Dim | `#00e676/10` → `/20` | Accent backgrounds, badge fills |
-| Text Primary | `text-white` | Headings, values |
-| Text Secondary | `text-white/60` | Body copy, descriptions |
-| Text Muted | `text-white/30` → `white/40` | Labels, captions, metadata |
-| Text Disabled | `text-white/20` | Placeholders, watermarks |
-| Amber | `text-amber-400` / `bg-amber-500/10` | Pending status |
-| Blue | `text-blue-400` / `bg-blue-500/10` | Under Review status |
-| Red | `text-red-400` / `bg-red-500/10` | Rejected / error states |
-| Green (same as accent) | `text-[#00e676]` / `bg-[#00e676]/5` | Approved / success |
+| `--bg` | `#070807` | Page background |
+| `--bg-2` | `#0E1110` | Footer, secondary surfaces |
+| `--panel` | `rgba(19,23,21,.5)` | Glassmorphism panels |
+| `--line` | `#1F2421` | Primary borders, dividers |
+| `--line-2` | `#2A312D` | Card borders, input borders |
+| `--text` | `#F3F6F4` | Primary text |
+| `--muted` | `#8A938E` | Secondary text, labels |
+| `--dim` | `#5D6661` | Tertiary text, read-time |
+| `--mint` | `#3DF49A` | Accent — CTAs, highlights, math color |
+| `--mint-2` | `#27D685` | Darker mint hover states |
+| `--mint-soft` | `rgba(61,244,154,.12)` | Accent backgrounds (badges, highlights) |
+| `--rose` | `#F26B6B` | Error / wrong answer |
+
+**Legacy aliases** (kept for Tailwind class compat):
+- `--accent` = `--mint`
+- `--accent-dim` = `--mint-soft`
+- `--border` = `--line`
+- `--surface` = `rgba(255,255,255,.03)`
+
+---
+
+## Background Effects
+
+Applied globally via `body::before` and `body::after` (fixed, pointer-events: none, z-index: 0).
+
+```css
+/* Faint grid overlay */
+body::before {
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: .5;
+}
+
+/* Ambient mint glow (bottom + top-right) */
+body::after {
+  background:
+    radial-gradient(900px 600px at 50% 110%, rgba(61,244,154,.10), transparent 70%),
+    radial-gradient(700px 500px at 100% -10%, rgba(61,244,154,.05), transparent 70%);
+}
+```
+
+All page content lives in `position: relative; z-index: 1`.
 
 ---
 
 ## Typography
 
-**Font Stack:**
-- Headings / Labels: `Syne` (`font-syne`) — weights 400, 500, 600, 700
-- Body: `Onest` (`font-onest`) — weights 400, 500, 600 — set as default on `<body>`
-- Mono: `JetBrains Mono` via KaTeX CDN (used for cert IDs, code)
+| Role | Font | Weights | Usage |
+|---|---|---|---|
+| Body | Plus Jakarta Sans (`--font-jakarta`) | 400, 500, 600, 700, 800 | All body text, headings, UI |
+| Mono | JetBrains Mono (`--font-mono`) | 400, 500 | Chapter numbers, labels, math notation, code |
 
-**Scale in use:**
-| Role | Classes | Usage |
+**Scale (common sizes):**
+
+| Usage | Size | Weight |
 |---|---|---|
-| Page title | `font-syne font-bold text-2xl` | Dashboard h1, modal headings |
-| Section heading | `font-syne font-semibold text-base` | Chapter list heading, stat labels |
-| Card title | `font-medium text-white text-sm` | Submission name, chapter title |
-| Body | `text-sm text-white/60` | Descriptions, card body |
-| Label | `text-xs text-white/50` | Form labels, metadata |
-| Micro | `text-[10px] text-white/30` | Cert watermark text, tracking-widest |
-| Cert display | `font-syne font-bold text-3xl md:text-4xl` | Student name on certificate |
-| Cert subheading | `font-syne font-semibold text-xl text-[#00e676]` | Course name on certificate |
-| Mono cert ID | `font-mono text-sm` | Certificate ID display |
+| Hero heading | `clamp(52px, 8.5vw, 108px)` | 800 |
+| Section heading | `clamp(40px, 5vw, 64px)` | 800 |
+| Page title (curriculum, faq) | `clamp(44px, 6vw, 80px)` | 800 |
+| Chapter title | `19–20px` | 700 |
+| Article body | `15.5px` | 400 |
+| Labels / eyebrows | `11px`, `letter-spacing: .16–.18em`, uppercase | 500–600 |
+| Mono labels (CH 01) | `12–13px` | 600 |
+
+**Letter spacing conventions:**
+- Large headings: `-0.03em` to `-0.035em`
+- Body: `0` to `-0.005em`
+- Mono labels: `+0.06em` to `+0.18em`
+- Eyebrows: `+0.16em` to `+0.18em`
 
 ---
 
-## Spacing
+## Button Variants
 
-Standard Tailwind scale. Key patterns used:
-- Page max-width: `max-w-3xl mx-auto px-5` (learning + dashboard)
-- Staff dashboard: `max-w-6xl mx-auto px-5`
-- Nav height: `h-14`
-- Page top padding (after fixed nav): `pt-24` or `pt-20`
-- Card inner padding: `p-4` (small) / `p-5` (standard) / `p-8 md:p-12` (certificates)
-- Stack gaps: `space-y-2` (lists) / `space-y-3` (form fields) / `space-y-4` (form sections)
-- Grid gaps: `gap-3` (stat cards, form grids)
+All buttons use `border-radius: 999px` (fully rounded pills).
+
+| Variant | Background | Text | Border | Usage |
+|---|---|---|---|---|
+| Primary (`btn-primary-lg`) | `var(--mint)` | `#06160E` | none | Main CTAs (Get Started, Submit) |
+| Outline (`btn-outline-lg`) | `rgba(255,255,255,.03)` | `var(--text)` | `rgba(255,255,255,.22)` | Secondary CTAs (FAQ, Explore) |
+| Primary small | `var(--mint)` | `#06160E` | none | Nav Get Started, quiz submit |
+| Outline small | `rgba(255,255,255,.02)` | `var(--text)` | `rgba(255,255,255,.18)` | Nav Sign in |
+| Ghost mint | transparent | `var(--mint)` | `rgba(61,244,154,.3)` | Take quiz, chapter quiz |
+
+**Hover states:**
+- Primary: `background: #5BFBA8; box-shadow: 0 0 0 6–8px rgba(61,244,154,.12)`
+- Outline: `border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.05)`
 
 ---
 
-## Border Radius
+## Input Fields
 
-| Usage | Class |
-|---|---|
-| Inputs, small buttons | `rounded-xl` (16px) — used everywhere consistently |
-| Cards, panels | `rounded-xl` |
-| Large certificates | `rounded-2xl` |
-| Pill buttons (print, back) | `rounded-full` |
-| Avatar circles | `rounded-full` |
-| Small badges | `rounded-lg` or `rounded-full` |
+```css
+/* Auth form inputs */
+background: #0B0F0D;
+border: 1px solid var(--line-2);
+border-radius: 10px;
+padding: 13px 16px;
+font-size: 14.5px;
+color: var(--text);
+
+/* Focus */
+border-color: var(--mint);
+box-shadow: 0 0 0 4px rgba(61,244,154,.08);
+```
+
+Labels: `11px`, `uppercase`, `letter-spacing: .14em`, `color: var(--muted)`.
 
 ---
 
 ## Component Patterns
 
-### Nav (fixed top)
-```tsx
-<nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#080808]/80 backdrop-blur-md">
-  <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
-    {/* content */}
-  </div>
-</nav>
-```
+### Nav (all pages)
+- `position: sticky; top: 0`
+- `backdrop-filter: saturate(1.2) blur(14px); background: rgba(7,8,7,.65)`
+- `border-bottom: 1px solid var(--line)`
+- Height: `64px` (inner pages) or `~75px` (landing)
 
-### Primary Button
-```tsx
-<button className="px-8 py-3 bg-[#00e676] text-black font-semibold rounded-full text-sm hover:bg-[#00e676]/90 disabled:opacity-60">
-  Label
-</button>
-// Full-width form variant:
-<button className="w-full py-3.5 rounded-xl bg-[#00e676] text-black font-semibold text-sm">
-  Label
-</button>
-```
+### Cards / Panels
+- `border: 1px solid var(--line-2); border-radius: 12–18px`
+- Background: `rgba(255,255,255,.02)` or `#0B0F0D` (darker math areas)
+- Padding: `18–32px`
 
-### Ghost / Secondary Button
-```tsx
-<button className="px-6 py-2.5 rounded-full border border-white/10 text-white/60 text-sm hover:border-white/20">
-  Label
-</button>
-```
+### Chapter Row (homepage + curriculum)
+- Grid: `80px 1fr auto auto 44px`
+- Padding: `26px 28px`
+- CH label: mint mono, `12–13px`, `letter-spacing: .06–.08em`
+- Arrow circle: 36×36, `border: 1px solid var(--line-2)` → on hover: `bg: var(--mint); color: #06160E`
 
-### Input
-```tsx
-<input className="w-full px-4 py-3 rounded-xl bg-white/4 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#00e676]/40 transition-colors" />
-```
+### Math Blocks (`KatexBlock`)
+- `div` (not span), `display: block`
+- `background: #0B0F0D; border: 1px solid var(--line-2); border-left: 2px solid var(--mint)`
+- `border-radius: 10px; padding: 20px 16px; text-align: center`
+- Color: `var(--mint)`
 
-### Textarea
-```tsx
-<textarea className="w-full px-4 py-3 rounded-xl bg-white/4 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#00e676]/40 resize-none" />
-```
+### Quiz Cards
+- `border-radius: 18px; padding: 28px 32px`
+- `background: linear-gradient(180deg, #0B0F0D, #0A0C0B)`
+- `box-shadow: 0 20px 40px -20px rgba(0,0,0,.5)`
+- Question number: mint mono, `letter-spacing: .1em`
+- Answer bullet: 30×30 circle, letter A/B/C/D in mono
 
-### Select
-```tsx
-<select className="w-full px-3 py-2.5 rounded-xl bg-white/4 border border-white/10 text-white text-sm focus:outline-none">
-```
+### Certificate
+- Outer container: `border: 1px solid var(--line-2); border-radius: 18px`
+- `background: radial-gradient(ellipse at 50% 0%, #0E1411 0%, rgba(7,9,8,.57) 100%), #07090A`
+- Corner marks: 34×34, `border: 1.5px solid var(--mint)` (4 corners, L-shape)
+- Name gradient: `linear-gradient(180deg, #fff, #9BFFC8)` on `-webkit-background-clip: text`
+- Seal: 104×104 circle, dashed inner ring, `border: 1.5px solid var(--mint)`
 
-### Card (standard)
-```tsx
-<div className="rounded-xl border border-white/8 bg-white/4 p-5">
-  {/* content */}
-</div>
-// Hoverable:
-<div className="rounded-xl border border-white/8 bg-white/3 p-4 hover:bg-white/5 hover:border-white/15 cursor-pointer transition-colors">
-```
+### FAQ Accordion
+- Question row: `padding: 20px 0; border-bottom: 1px solid var(--line)`
+- Toggle button: 28×28 circle, `+` rotates 45° on open
+- Answer: `font-size: 14.5px; color: var(--muted); line-height: 1.7`
 
-### Status Badge
-```tsx
-// Pending
-<span className="text-xs text-amber-400 flex items-center gap-1">
-  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"/> Pending
-</span>
-// Under Review
-<span className="text-xs text-blue-400">Under Review</span>
-// Approved
-<span className="text-xs text-[#00e676]">Approved</span>
-// Rejected
-<span className="text-xs text-red-400">Rejected</span>
-```
+### Auth Split-Pane
+- Grid: `1.05fr 1fr`
+- Left pane: `background: linear-gradient(180deg, #050706 0%, #08120D 100%)`; decorative grid overlay
+- Right pane: centered form, max-width 400px
 
-### Chip / Toggle Button (department / gender selector)
-```tsx
-// Active:
-<button className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-[#00e676] text-black border-[#00e676]">CSE</button>
-// Inactive:
-<button className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-white/4 text-white/60 border-white/10 hover:border-white/20">CSE</button>
-```
+### Globe (Landing hero)
+- Canvas element, `position: absolute; left: 50%; bottom: -(size × 0.73)`
+- Rotates at 0.06°/frame on the longitude axis
+- Bangladesh (ISO 50) highlighted: `fillStyle: rgba(61,244,154,.55); shadowColor: rgba(61,244,154,.9); shadowBlur: 18`
+- Country borders: `rgba(200,225,212,.28); lineWidth: 0.7`
+- Graticule: `rgba(150,175,160,.08); lineWidth: 0.35`
 
-### Progress Bar
-```tsx
-<div className="h-2 bg-white/5 rounded-full overflow-hidden">
-  <div className="h-full bg-[#00e676] rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
-</div>
-```
-
-### Certificate (Completion)
-```tsx
-// Outer wrapper
-<div className="relative rounded-2xl border-2 border-[#00e676]/25 bg-gradient-to-br from-[#00e676]/5 via-transparent to-transparent p-8 md:p-12 text-center overflow-hidden">
-  {/* Corner decorations — 4x absolute divs */}
-  {/* Watermark — absolute, opacity-[0.025], font-black text-[100px] rotate-[-25deg] */}
-  {/* Content — relative z-10 */}
-</div>
-```
-
-### Certificate (Quote)
-```tsx
-// Outer wrapper
-<div className="relative rounded-2xl border-2 border-white/10 bg-gradient-to-br from-white/4 via-transparent to-transparent p-8 md:p-12 text-center overflow-hidden">
-  {/* Corner decorations — thinner border (border not border-2) */}
-  {/* Large quotation mark watermark */}
-  {/* Blockquote — font-syne text-xl md:text-2xl text-white/90 */}
-</div>
-```
-
-### Stat Card (staff dashboard)
-```tsx
-<div className="rounded-xl border border-white/8 bg-white/3 p-4">
-  <div className="text-xl mb-1">{icon}</div>
-  <div className="font-syne font-bold text-2xl text-[color]">{value}</div>
-  <div className="text-xs text-white/40 mt-0.5">{label}</div>
-</div>
-```
-
-### Avatar Circle (initials)
-```tsx
-<div className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center text-sm font-bold text-white/60">
-  {name.charAt(0).toUpperCase()}
-</div>
-```
-
-### Tab Switcher
-```tsx
-<div className="flex gap-1 border border-white/8 rounded-xl p-1 bg-white/2 w-fit">
-  <button className="px-5 py-2 rounded-lg text-sm font-medium bg-white/10 text-white">Active</button>
-  <button className="px-5 py-2 rounded-lg text-sm font-medium text-white/40 hover:text-white/60">Inactive</button>
-</div>
-```
-
-### Modal Overlay
-```tsx
-<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4 py-6 overflow-y-auto">
-  <div className="w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 my-auto">
-    {/* content */}
-  </div>
-</div>
-```
+### Logo Variants
+- `LogoFull`: SVG mark (44px) + vertical divider (`1.5px, rgba(255,255,255,.25)`) + "Learn" (`font-size: 33px, weight: 800`)
+- `LogoMark`: SVG mark only (size prop, default 36px)
 
 ---
 
-## Animations / Transitions
+## Spacing
 
-| Usage | Class |
+| Name | Value | Usage |
+|---|---|---|
+| xs | 4–6px | Icon gaps, tight labels |
+| sm | 8–12px | Button icon gaps, small card padding |
+| md | 16–20px | Card gaps, section gaps |
+| lg | 28–32px | Card padding, section padding |
+| xl | 48–56px | Page section padding |
+| 2xl | 80–120px | Hero padding, major section gaps |
+
+---
+
+## Borders & Radius
+
+| Context | Radius |
 |---|---|
-| Hover borders, backgrounds | `transition-colors` |
-| Progress bar fill | `transition-all duration-700` |
-| Toggle switch thumb | `transition-all` |
-| Everything else | `transition-colors` (default) |
-
-No page transitions or heavy animations. Motion is minimal and purposeful.
+| Buttons, pills | `999px` |
+| Cards, panels | `12–18px` |
+| Badges, mono tags | `6px` |
+| Input fields | `10px` |
+| Number badges | `8–12px` |
+| Certificate | `18px` |
 
 ---
 
-## Dark Mode Notes
+## Transitions & Animation
 
-- Dark-first, no light mode.
-- Background layers: `#080808` (page) → `white/4` (card) → `white/8` (hover/elevated)
-- Never pure white text — `text-white` is the maximum (approx `#ffffff`)
-- Accent `#00e676` used on dark backgrounds only
-- Print styles: `print:hidden` on nav and action buttons; certificate divs render clean
+| Property | Duration | Easing |
+|---|---|---|
+| Color / background | `0.15–0.2s` | linear |
+| Box shadow (hover glow) | `0.18s` | linear |
+| Border color | `0.15s` | linear |
+| Progress bar fill | `0.6s ease` | ease |
+| Globe rotation | 60fps, `0.06°/frame` | — |
+| FAQ toggle rotation | `0.2s` | linear |
+| Page fade-in | `0.35s` | ease |
+
+---
+
+## Dark Mode
+
+Dark-first. No light mode. Background is `#070807` (near-black with slight green tint).
+
+All text on dark: `var(--text)` (`#F3F6F4`) for primary, `var(--muted)` (`#8A938E`) for secondary, `var(--dim)` (`#5D6661`) for tertiary.
+
+Selection: `background: var(--mint); color: #000`
+
+Scrollbar: 4px, `rgba(255,255,255,.1)` thumb, transparent track.

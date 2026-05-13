@@ -1,26 +1,27 @@
-# LearnD.E.
+# dy/dx Learn
 
-Interactive Differential Equations course platform for CSE 2nd semester — read, quiz, get a human-verified certificate.
+Interactive Differential Equations course for CSE 2nd semester — read chapters, take quizzes, earn a human-verified certificate.
 
 ---
 
 ## Stack
 
 - Next.js 16 App Router (TypeScript)
-- Tailwind CSS
+- Tailwind CSS + CSS custom properties
 - Neon (PostgreSQL) + Drizzle ORM
-- Custom JWT auth (jose) — students + staff
-- Resend (transactional email)
-- Vercel
+- Custom JWT auth (jose) — no Clerk/Auth.js
+- Resend (email)
+- KaTeX (math rendering, CDN)
+- d3-geo + topojson-client (globe)
+- Vercel (deployment)
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+
-- npm
-- Neon account + database
-- Resend account (for email)
+- Node.js 20+
+- A Neon database (free tier works)
+- A Resend account (free tier works)
 
 ---
 
@@ -34,11 +35,21 @@ cd learnDE
 # 2. Install
 npm install
 
-# 3. Env
+# 3. Copy env
 cp .env.example .env.local
-# Fill in values — see Env Vars below
+# Fill in all values in .env.local
 
-# 4. Run
+# 4. Run DB migrations (first time only)
+curl -X POST http://localhost:3000/api/admin/migrate \
+  -H "x-setup-key: YOUR_ADMIN_SETUP_KEY"
+
+# 5. Create first admin (first time only)
+curl -X POST http://localhost:3000/api/admin/setup \
+  -H "x-setup-key: YOUR_ADMIN_SETUP_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","email":"admin@example.com","password":"yourpassword","displayName":"Admin"}'
+
+# 6. Start dev server
 npm run dev
 ```
 
@@ -46,60 +57,59 @@ npm run dev
 
 ## Env Vars
 
-```env
-DATABASE_URL=postgresql://...           # Neon pooled connection string
-JWT_SECRET=your-long-random-secret      # Shared for student + staff tokens
-RESEND_API_KEY=re_xxxxxxxxxxxx          # Resend API key
-EMAIL_FROM=LearnD.E. <noreply@...>      # Must match verified Resend domain
-NEXT_PUBLIC_BASE_URL=https://...        # Public URL (used in email links)
-ADMIN_SETUP_KEY=learnde-setup-2025      # Key for one-time setup endpoints
-```
+See `PLANNER.md → Env Vars` for full descriptions.
 
-Full descriptions → `PLANNER.md` → Env Vars.
+```
+DATABASE_URL=
+JWT_SECRET=
+RESEND_API_KEY=
+EMAIL_FROM=          # optional
+NEXT_PUBLIC_BASE_URL= # optional
+ADMIN_SETUP_KEY=     # optional, used for /api/admin/* endpoints
+```
 
 ---
 
 ## Commands
 
 ```bash
-npm run dev      # Dev server (localhost:3000)
+npm run dev      # Start dev server (localhost:3000)
 npm run build    # Production build
-npm run start    # Start production server
+npm run start    # Serve production build
 npm run lint     # ESLint
 ```
 
 ---
 
-## One-Time DB Setup (after first deploy)
+## Routes
 
-```bash
-# 1. Create tables
-curl -X POST https://your-domain.vercel.app/api/admin/migrate \
-  -H "x-setup-key: learnde-setup-2025"
-
-# 2. Create first admin account
-curl -X POST https://your-domain.vercel.app/api/admin/setup \
-  -H "x-setup-key: learnde-setup-2025" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","email":"you@email.com","password":"yourpassword","displayName":"Your Name"}'
-```
-
-Then go to `/staff` and log in.
-
----
-
-## Deploy
-
-Pushes to `main` auto-deploy on Vercel. Set all env vars in Vercel dashboard (Production + Preview).
+| Route | Description |
+|---|---|
+| `/` | Landing page |
+| `/curriculum` | Course overview (chapter list) |
+| `/learn/[chapter]` | Chapter reading page |
+| `/quiz/[chapter]` | Chapter quiz |
+| `/faq` | FAQ page |
+| `/login` `/register` | Student auth |
+| `/dashboard` | Student progress |
+| `/profile` | Certificate application form |
+| `/certificate` | Certificate display |
+| `/staff` | Moderator + admin panel |
 
 ---
 
 ## Folder Structure
 
 ```
-app/          # Pages + API routes
-lib/          # DB client, auth helpers, quiz data, email
-public/       # Static assets
+app/           Next.js App Router pages + API routes
+  components/  Globe.tsx, Logo.tsx
+  curriculum/  Course overview (was /learn)
+  faq/         FAQ page
+  learn/       Individual chapter pages + redirect
+  quiz/        Quiz pages
+lib/           Auth helpers, DB client, chapters, quiz data
+public/        logo.svg
 ```
 
-Full architecture + DB schema → `PLANNER.md`.
+For API routes, DB schema, and architecture details → `PLANNER.md`
+For design tokens and component specs → `DESIGN_GUIDE.md`
