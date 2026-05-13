@@ -104,7 +104,7 @@ export default async function HomePage() {
         <div className="section-head">
           <div>
             <div className="sec-tag">/ Curriculum</div>
-            <h2>From first <em>derivative</em><br/>to a signed certificate.</h2>
+            <h2>From first <em>derivative</em><br/>to first in class.</h2>
           </div>
           <p className="sec-note">Eight focused chapters that build on each other — read, work an example, take the quiz, move on.</p>
         </div>
