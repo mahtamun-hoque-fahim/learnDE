@@ -13,80 +13,83 @@ declare global {
 }
 
 // Convert quiz text (unicode math) → LaTeX delimited strings, then render with KaTeX
-function unicodeToLatex(raw: string): string {
+// ─── Targeted injection: replace only math sub-expressions with $...$ ─────────
+// Used for QUESTION text (natural language + embedded math)
+function injectMath(raw: string): string {
+  if (raw.includes('$')) return raw
   return raw
-    // fractions written as text
-    .replace(/d²y\/dx²/g, '\\dfrac{d^2y}{dx^2}')
-    .replace(/d²y\/dx/g,  '\\dfrac{d^2y}{dx}')
-    .replace(/dy\/dx/g,   '\\dfrac{dy}{dx}')
-    .replace(/dv\/dx/g,   '\\dfrac{dv}{dx}')
-    .replace(/dP\/dt/g,   '\\dfrac{dP}{dt}')
-    .replace(/dT\/dt/g,   '\\dfrac{dT}{dt}')
-    .replace(/dq\/dt/g,   '\\dfrac{dq}{dt}')
-    .replace(/d\/dx/g,    '\\dfrac{d}{dx}')
-    // superscripts / subscripts
+    // fractions — replace and immediately wrap in $...$
+    .replace(/d²y\/dx²/g,   '$\\dfrac{d^2y}{dx^2}$')
+    .replace(/d²y\/dx/g,    '$\\dfrac{d^2y}{dx}$')
+    .replace(/dy\/dx/g,     '$\\dfrac{dy}{dx}$')
+    .replace(/dv\/dx/g,     '$\\dfrac{dv}{dx}$')
+    .replace(/dP\/dt/g,     '$\\dfrac{dP}{dt}$')
+    .replace(/dT\/dt/g,     '$\\dfrac{dT}{dt}$')
+    .replace(/dq\/dt/g,     '$\\dfrac{dq}{dt}$')
+    .replace(/dx\/dt/g,     '$\\dfrac{dx}{dt}$')
+    .replace(/d\/dx/g,      '$\\dfrac{d}{dx}$')
+    // superscripts on variables
+    .replace(/([a-zA-Z\)])²/g,  (_, c) => `$${c}^2$`)
+    .replace(/([a-zA-Z\)])³/g,  (_, c) => `$${c}^3$`)
+    .replace(/([a-zA-Z\)])⁴/g,  (_, c) => `$${c}^4$`)
+    .replace(/([a-zA-Z\)])ⁿ/g,  (_, c) => `$${c}^n$`)
+    .replace(/([a-zA-Z\)])ˣ/g,  (_, c) => `$${c}^x$`)
+    .replace(/([a-zA-Z\)])⁻ˣ/g, (_, c) => `$${c}^{-x}$`)
+    .replace(/([a-zA-Z\)])⁻¹/g, (_, c) => `$${c}^{-1}$`)
+    .replace(/([a-zA-Z\)])₁/g,  (_, c) => `$${c}_1$`)
+    .replace(/([a-zA-Z\)])₂/g,  (_, c) => `$${c}_2$`)
+    // e^(...) pattern
+    .replace(/e\^\(([^)]+)\)/g, (_, inner) => `$e^{${inner}}$`)
+    // integrals
+    .replace(/∫/g, '$\\int$')
+    // arrows
+    .replace(/→/g, '$\\to$')
+    // trig abbreviations when they appear inline in math
+    .replace(/\barctan\b/g, '$\\arctan$')
+    .replace(/\barcsin\b/g, '$\\arcsin$')
+    .replace(/\barccos\b/g, '$\\arccos$')
+}
+
+// ─── Pure-math option: convert unicode then wrap whole thing in $...$ ─────────
+// Only used when the entire option IS a math expression (no natural language)
+const NATURAL_WORDS = /\b(an|the|no|not|has|have|always|more|more than|depends|exactly|leave|higher|contains|occurs|gives|means|equal|only|from)\b/i
+
+function processOption(raw: string): string {
+  if (raw.includes('$')) return raw
+  // If it has natural-language words, just do targeted injection
+  if (NATURAL_WORDS.test(raw) || raw.length > 50) return injectMath(raw)
+
+  // Convert unicode → LaTeX notation
+  const converted = raw
+    .replace(/d²y\/dx²/g,   '\\dfrac{d^2y}{dx^2}')
+    .replace(/dy\/dx/g,     '\\dfrac{dy}{dx}')
+    .replace(/dv\/dx/g,     '\\dfrac{dv}{dx}')
+    .replace(/dP\/dt/g,     '\\dfrac{dP}{dt}')
+    .replace(/d\/dx/g,      '\\dfrac{d}{dx}')
     .replace(/([a-zA-Z0-9\)])²/g, '$1^2')
     .replace(/([a-zA-Z0-9\)])³/g, '$1^3')
-    .replace(/([a-zA-Z0-9\)])⁴/g, '$1^4')
     .replace(/([a-zA-Z0-9\)])ⁿ/g, '$1^n')
     .replace(/([a-zA-Z0-9\)])ˣ/g, '$1^x')
-    .replace(/([a-zA-Z0-9\)])⁻ˣ/g, '$1^{-x}')
-    .replace(/([a-zA-Z0-9\)])⁻¹/g, '$1^{-1}')
-    .replace(/([a-zA-Z0-9\)])⁻²/g, '$1^{-2}')
+    .replace(/([a-zA-Z0-9\)])⁻ˣ/g,'$1^{-x}')
+    .replace(/([a-zA-Z0-9\)])⁻¹/g,'$1^{-1}')
     .replace(/([a-zA-Z0-9\)])₁/g, '$1_1')
     .replace(/([a-zA-Z0-9\)])₂/g, '$1_2')
-    // integrals
-    .replace(/∫/g, '\\int ')
-    // trig
-    .replace(/\barctan\b/g, '\\arctan')
-    .replace(/\barcsin\b/g, '\\arcsin')
-    .replace(/\barccos\b/g, '\\arccos')
-    .replace(/\bsec²\b/g, '\\sec^2')
-    .replace(/\btan²\b/g, '\\tan^2')
-    // e^(...)
     .replace(/e\^\(([^)]+)\)/g, 'e^{$1}')
-    // ln|...| → \ln|...|
-    .replace(/\bln\|/g, '\\ln|')
+    .replace(/∫/g, '\\int ')
     .replace(/\bln\b/g, '\\ln')
-    // arrows
+    .replace(/\barctan\b/g, '\\arctan')
     .replace(/→/g, '\\to')
+
+  // Wrap the whole thing as inline math only if it looks like a math expression
+  const looksLikeMath = /[=\^\_\\]|\\dfrac|\\int|\\ln/.test(converted)
+    || /[²³⁴ⁿˣ∫→]/.test(raw)
+  if (looksLikeMath) return `$${converted}$`
+  return raw
 }
 
-// Heuristic: does this string look like math?
-function looksMath(s: string): boolean {
-  if (s.includes('$')) return false // already processed
-  const mathyPatterns = [
-    /[=\+\-\/\^\_]/, /dy|dx|dt|ln|sin|cos|tan|sec|csc|arctan/,
-    /[²³⁴ⁿˣ₁₂∫→⁻]/, /\d+[a-zA-Z]/, /[a-zA-Z]\d/,
-    /\b[A-Z]\([a-z]\)/, /e\^/, /\^[0-9n]/,
-  ]
-  return mathyPatterns.some(p => p.test(s)) && s.length < 80
-}
-
-function processQuizText(raw: string): string {
-  // If already has $ delimiters, keep as-is
-  if (raw.includes('$')) return raw
-
-  // Try to find "math segments" in the string (parts between words that look like equations)
-  // Simple approach: if whole string looks math, wrap it; otherwise find inline math parts
-  const converted = unicodeToLatex(raw)
-
-  if (looksMath(raw)) {
-    // Whole thing is likely a math expression
-    return `$${converted}$`
-  }
-
-  // Try to wrap inline math-looking substrings (e.g. "y = Cx" in a sentence)
-  // Find sequences like "letter = expression" 
-  return converted.replace(/([a-zA-Z\s]*=\s*[^\s,\.]+(?:\s*[+\-]\s*[^\s,\.]+)*)/g, (match) => {
-    if (looksMath(match.trim())) return `$${match.trim()}$`
-    return match
-  })
-}
-
-function QuizMathText({ text }: { text: string }) {
+function QuizMathText({ text, isOption = false }: { text: string; isOption?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const processed = processQuizText(text)
+  const processed = isOption ? processOption(text) : injectMath(text)
 
   useEffect(() => {
     const el = ref.current
@@ -246,7 +249,7 @@ export default function QuizPage() {
                 <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--mint)', marginBottom:10, letterSpacing:'.1em' }}>
                   QUESTION {String(qi+1).padStart(2,'0')} / {String(questions.length).padStart(2,'0')}
                 </div>
-                <div style={{ fontSize:20, fontWeight:700, lineHeight:1.3, letterSpacing:'-0.015em', marginBottom:6, color:'var(--text)' }}>
+                <div style={{ fontSize:18, fontWeight:600, lineHeight:1.45, letterSpacing:'-0.01em', marginBottom:6, color:'var(--text)' }}>
                   <QuizMathText text={q.question} />
                 </div>
 
@@ -273,8 +276,8 @@ export default function QuizPage() {
                         <div style={{ width:30, height:30, borderRadius:'50%', border:`1px solid ${border}`, display:'grid', placeItems:'center', fontFamily:'var(--font-mono),monospace', fontSize:12, color:bulletColor, flexShrink:0, background:bulletBg, transition:'.15s' }}>
                           {String.fromCharCode(65+oi)}
                         </div>
-                        <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:14, color, flex:1 }}>
-                          <QuizMathText text={opt} />
+                        <div style={{ fontSize:14.5, color, flex:1, lineHeight:1.4 }}>
+                          <QuizMathText text={opt} isOption />
                         </div>
                       </button>
                     )
