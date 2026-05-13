@@ -124,7 +124,7 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
               {section.cards.map((card, ci) => (
                 <div key={ci} style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,.07)', background: '#0B0F0D', padding: '16px 14px' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 10 }}>{card.title}</div>
-                  <div style={{ textAlign: 'center', color: 'var(--mint)' }}>
+                  <div className="math-card" style={{ textAlign: 'center', color: 'var(--mint)' }}>
                     <MathText text={card.content} accent />
                   </div>
                 </div>
@@ -172,7 +172,7 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
               </div>
               <div style={{ padding: '20px' }}>
                 {/* Problem — green */}
-                <p style={{ fontSize: 15, color: 'rgba(255,255,255,.75)', marginBottom: 16 }}>
+                <p className="math-accent" style={{ fontSize: 15, color: 'rgba(255,255,255,.75)', marginBottom: 16 }}>
                   <MathText text={ex.problem} accent />
                 </p>
                 <details>
@@ -190,8 +190,7 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
                           borderRadius: isFinal ? '0 6px 6px 0' : 0,
                         }}>
                           <div style={{ fontSize: 10, color: isFinal ? 'var(--mint)' : 'rgba(255,255,255,.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 6, fontFamily: 'var(--font-mono),monospace' }}>{step.label}</div>
-                          {/* Final step — green math; all other steps — white math */}
-                          <div style={{ fontSize: 14.5, color: isFinal ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.65)' }}>
+                          <div className={isFinal ? 'math-accent' : ''} style={{ fontSize: 14.5, color: isFinal ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.65)' }}>
                             <MathText text={step.content} accent={isFinal} />
                           </div>
                         </div>
@@ -285,7 +284,7 @@ export default function ChapterPage() {
         </aside>
 
         {/* Article */}
-        <article style={{ maxWidth: 720, margin: '0 auto', minWidth: 0 }}>
+        <article className="chapter-body" style={{ maxWidth: 720, margin: '0 auto', minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-mono),monospace', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.13em', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ color: 'var(--mint)' }}>Ch {String(chapter.order).padStart(2,'0')}</span>
             <span>/</span><span>{chapter.title}</span>
@@ -375,6 +374,39 @@ export default function ChapterPage() {
         .toc-aside { position:sticky;top:80px;align-self:start }
         .rail-aside { position:sticky;top:80px;align-self:start }
         @media(max-width:1100px) { .reader-grid{grid-template-columns:1fr} .toc-aside,.rail-aside{display:none} }
+
+        /* ── KaTeX color rules ── */
+        /* Default: all katex in chapter content is white */
+        .chapter-body .katex,
+        .chapter-body .katex-display,
+        .chapter-body .katex .mord,
+        .chapter-body .katex .mrel,
+        .chapter-body .katex .mop,
+        .chapter-body .katex .mbin,
+        .chapter-body .katex .mpunct,
+        .chapter-body .katex .mopen,
+        .chapter-body .katex .mclose,
+        .chapter-body .katex .minner { color: rgba(255,255,255,.82) !important; }
+
+        /* Accent (problem + final answer): mint */
+        .math-accent .katex,
+        .math-accent .katex-display,
+        .math-accent .katex .mord,
+        .math-accent .katex .mrel,
+        .math-accent .katex .mop,
+        .math-accent .katex .mbin,
+        .math-accent .katex .mpunct,
+        .math-accent .katex .mopen,
+        .math-accent .katex .mclose,
+        .math-accent .katex .minner { color: var(--mint) !important; }
+
+        /* Card formulas: mint */
+        .math-card .katex,
+        .math-card .katex-display,
+        .math-card .katex .mord,
+        .math-card .katex .mrel,
+        .math-card .katex .mop,
+        .math-card .katex .mbin { color: var(--mint) !important; }
       `}</style>
     </div>
   )

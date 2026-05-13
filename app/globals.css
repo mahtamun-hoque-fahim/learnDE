@@ -51,19 +51,7 @@ body::after {
     radial-gradient(700px 500px at 100% -10%, rgba(61,244,154,.05), transparent 70%);
 }
 
-/* math blocks */
-.math-block {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 15px;
-  color: var(--mint);
-  padding: 18px 22px;
-  background: #0B0F0D;
-  border: 1px solid var(--line-2);
-  border-left: 2px solid var(--mint);
-  border-radius: 10px;
-  margin: 18px 0;
-  overflow-x: auto;
-}
+/* math blocks — color controlled per-component, not globally */
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
