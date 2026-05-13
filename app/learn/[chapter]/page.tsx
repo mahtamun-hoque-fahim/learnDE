@@ -76,9 +76,13 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
   return (
     <div>
       {chapter.sections.map((section, si) => (
-        <div key={si} style={{ marginBottom: 48 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', margin: '48px 0 14px', display: 'flex', alignItems: 'center', gap: 14, color: 'var(--text)' }}>
-            <span style={{ fontFamily: 'var(--font-mono),monospace', fontSize: 12, color: 'var(--mint)', background: 'var(--mint-soft)', border: '1px solid rgba(61,244,154,.2)', padding: '4px 10px', borderRadius: 6, flexShrink: 0 }}>
+        <div key={si} style={{ marginBottom: 56 }}>
+          {/* Section heading — neutral badge, not green */}
+          <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', margin: '48px 0 14px', display: 'flex', alignItems: 'center', gap: 14, color: 'var(--text)' }}>
+            <span style={{
+              fontFamily: 'var(--font-mono),monospace', fontSize: 11, padding: '4px 10px', borderRadius: 6, flexShrink: 0,
+              color: 'rgba(255,255,255,.5)', background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)',
+            }}>
               {ROMAN[si] ?? si + 1}
             </span>
             {section.title}
@@ -88,19 +92,35 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
           <div style={{ marginBottom: 12 }}>
             {section.body.split('\n').map((line, li) =>
               line.trim() ? (
-                <p key={li} style={{ margin: '0 0 14px', fontSize: 15.5, lineHeight: 1.65, color: '#CDD3D0' }}>
+                <p key={li} style={{ margin: '0 0 14px', fontSize: 15.5, lineHeight: 1.7, color: 'rgba(255,255,255,.7)' }}>
                   <MathText text={line} />
                 </p>
               ) : <br key={li} />
             )}
           </div>
 
+          {/* Side note — neutral callout, not green */}
+          {section.sideNote && (
+            <div style={{
+              margin: '20px 0 24px', padding: '14px 18px',
+              background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)',
+              borderLeft: '2px solid rgba(255,255,255,.2)', borderRadius: 10,
+            }}>
+              <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.14em', color: 'rgba(255,255,255,.3)', marginBottom: 6, fontFamily: 'var(--font-mono),monospace' }}>
+                Note
+              </div>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.5)', margin: 0, lineHeight: 1.65 }}>
+                <MathText text={section.sideNote} />
+              </p>
+            </div>
+          )}
+
           {/* Cards */}
           {section.cards && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginTop: 16 }}>
               {section.cards.map((card, ci) => (
-                <div key={ci} style={{ borderRadius: 12, border: '1px solid var(--line-2)', background: '#0B0F0D', padding: '16px 14px' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{card.title}</div>
+                <div key={ci} style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,.07)', background: '#0B0F0D', padding: '16px 14px' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 10 }}>{card.title}</div>
                   <div style={{ textAlign: 'center', color: 'var(--mint)' }}>
                     <MathText text={card.content} />
                   </div>
@@ -115,14 +135,14 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr>{section.table.headers.map(h => (
-                    <th key={h} style={{ textAlign: 'left', fontSize: 11, color: 'var(--muted)', fontWeight: 500, paddingBottom: 8, borderBottom: '1px solid var(--line)', paddingRight: 24 }}>{h}</th>
+                    <th key={h} style={{ textAlign: 'left', fontSize: 11, color: 'rgba(255,255,255,.35)', fontWeight: 500, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,.08)', paddingRight: 24 }}>{h}</th>
                   ))}</tr>
                 </thead>
                 <tbody>
                   {section.table.rows.map((row, ri) => (
                     <tr key={ri} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
                       {row.map((cell, ci) => (
-                        <td key={ci} style={{ padding: '12px 24px 12px 0', color: 'var(--muted)', fontSize: 14 }}>
+                        <td key={ci} style={{ padding: '12px 24px 12px 0', color: 'rgba(255,255,255,.6)', fontSize: 14 }}>
                           <MathText text={cell} />
                         </td>
                       ))}
@@ -133,25 +153,33 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
             </div>
           )}
 
-          {/* Examples */}
+          {/* Examples — white label, not green */}
           {section.examples?.map((ex, ei) => (
-            <div key={ei} style={{ marginTop: 28, borderRadius: 12, border: '1px solid var(--line-2)', overflow: 'hidden' }}>
-              <div style={{ padding: '10px 20px', background: 'rgba(61,244,154,.04)', borderBottom: '1px solid var(--line-2)' }}>
-                <span style={{ fontSize: 11, color: 'var(--mint)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.16em', fontFamily: 'var(--font-mono),monospace' }}>{ex.label}</span>
+            <div key={ei} style={{ marginTop: 28, borderRadius: 14, border: '1px solid rgba(255,255,255,.08)', overflow: 'hidden' }}>
+              <div style={{ padding: '10px 20px', background: 'rgba(255,255,255,.03)', borderBottom: '1px solid rgba(255,255,255,.07)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.16em', fontFamily: 'var(--font-mono),monospace' }}>{ex.label}</span>
+                {ex.difficulty && (
+                  <span style={{
+                    fontSize: 9, fontFamily: 'var(--font-mono),monospace', textTransform: 'uppercase', letterSpacing: '.12em', padding: '2px 7px', borderRadius: 4,
+                    background: ex.difficulty === 'hard' ? 'rgba(242,107,107,.12)' : ex.difficulty === 'medium' ? 'rgba(255,180,0,.1)' : 'rgba(255,255,255,.05)',
+                    color: ex.difficulty === 'hard' ? 'var(--rose)' : ex.difficulty === 'medium' ? '#FFBA00' : 'rgba(255,255,255,.35)',
+                    border: `1px solid ${ex.difficulty === 'hard' ? 'rgba(242,107,107,.2)' : ex.difficulty === 'medium' ? 'rgba(255,180,0,.2)' : 'rgba(255,255,255,.08)'}`,
+                  }}>{ex.difficulty}</span>
+                )}
               </div>
               <div style={{ padding: '20px' }}>
-                <p style={{ fontSize: 15, color: '#CDD3D0', marginBottom: 16 }}>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,.75)', marginBottom: 16 }}>
                   <MathText text={ex.problem} />
                 </p>
                 <details>
-                  <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 13.5, color: 'var(--muted)', userSelect: 'none', listStyle: 'none' }}>
+                  <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,.35)', userSelect: 'none', listStyle: 'none', padding: '6px 0' }}>
                     <span>Show step-by-step solution</span><span style={{ fontSize: 18 }}>+</span>
                   </summary>
-                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {ex.steps.map((step, sti) => (
-                      <div key={sti} style={{ borderLeft: '2px solid rgba(61,244,154,.3)', paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
-                        <div style={{ fontSize: 10, color: 'var(--dim)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 4, fontFamily: 'var(--font-mono),monospace' }}>{step.label}</div>
-                        <div style={{ fontSize: 14, color: '#CDD3D0' }}><MathText text={step.content} /></div>
+                      <div key={sti} style={{ borderLeft: '2px solid rgba(255,255,255,.1)', paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 6, fontFamily: 'var(--font-mono),monospace' }}>{step.label}</div>
+                        <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,.65)' }}><MathText text={step.content} /></div>
                       </div>
                     ))}
                   </div>

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { CHAPTERS } from '@/lib/chapters'
-import { QUIZ_QUESTIONS } from '@/lib/quiz-data'
+import { getDailyQuestions } from '@/lib/quiz-data'
 import { LogoMark } from '@/app/components/Logo'
 
 declare global {
@@ -130,7 +130,7 @@ export default function QuizPage() {
   const params = useParams()
   const slug = params.chapter as string
   const chapter = CHAPTERS.find(c => c.slug === slug)
-  const questions = QUIZ_QUESTIONS[slug] ?? []
+  const questions = getDailyQuestions(slug)
 
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -206,11 +206,22 @@ export default function QuizPage() {
           <p style={{ color:'var(--muted)', fontSize:14, margin:0 }}>{questions.length} questions · Pass with 60%</p>
         </div>
 
-        {/* Progress bar */}
-        <div style={{ display:'flex', gap:5, marginBottom:32 }}>
-          {questions.map((_, i) => (
-            <div key={i} style={{ flex:1, height:4, borderRadius:2, background: submitted ? (result?.results[i]?.correct ? 'var(--mint)' : 'var(--rose)') : answers[i] !== undefined ? 'var(--text)' : 'var(--line)' }} />
-          ))}
+        {/* Difficulty legend + progress bar */}
+        <div style={{ marginBottom:32 }}>
+          <div style={{ display:'flex', gap:16, marginBottom:10, fontSize:11, fontFamily:'var(--font-mono),monospace' }}>
+            {(['easy','medium','hard'] as const).map(d => (
+              <span key={d} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                <span style={{ width:8, height:8, borderRadius:2, display:'inline-block', background: d==='hard' ? 'var(--rose)' : d==='medium' ? '#FFBA00' : 'rgba(255,255,255,.4)' }} />
+                <span style={{ color:'rgba(255,255,255,.3)', textTransform:'uppercase', letterSpacing:'.1em' }}>{d}</span>
+                <span style={{ color:'rgba(255,255,255,.2)' }}>×{questions.filter(q => q.difficulty === d).length}</span>
+              </span>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:5 }}>
+            {questions.map((q, i) => (
+              <div key={i} style={{ flex:1, height:4, borderRadius:2, background: submitted ? (result?.results[i]?.correct ? 'var(--mint)' : 'var(--rose)') : answers[i] !== undefined ? (q.difficulty === 'hard' ? 'var(--rose)' : q.difficulty === 'medium' ? '#FFBA00' : 'rgba(255,255,255,.6)') : 'var(--line)' }} />
+            ))}
+          </div>
         </div>
 
         {/* Result banner */}
@@ -246,8 +257,16 @@ export default function QuizPage() {
                 background:'linear-gradient(180deg, #0B0F0D, #0A0C0B)',
                 padding:'28px 32px', boxShadow:'0 20px 40px -20px rgba(0,0,0,.5)',
               }}>
-                <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--mint)', marginBottom:10, letterSpacing:'.1em' }}>
-                  QUESTION {String(qi+1).padStart(2,'0')} / {String(questions.length).padStart(2,'0')}
+                <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--mint)', marginBottom:10, letterSpacing:'.1em', display:'flex', alignItems:'center', gap:10 }}>
+                  <span>QUESTION {String(qi+1).padStart(2,'0')} / {String(questions.length).padStart(2,'0')}</span>
+                  {q.difficulty && (
+                    <span style={{
+                      fontSize:9, padding:'2px 8px', borderRadius:4, textTransform:'uppercase', letterSpacing:'.12em',
+                      background: q.difficulty === 'hard' ? 'rgba(242,107,107,.12)' : q.difficulty === 'medium' ? 'rgba(255,180,0,.1)' : 'rgba(255,255,255,.05)',
+                      color: q.difficulty === 'hard' ? 'var(--rose)' : q.difficulty === 'medium' ? '#FFBA00' : 'rgba(255,255,255,.4)',
+                      border: `1px solid ${q.difficulty === 'hard' ? 'rgba(242,107,107,.25)' : q.difficulty === 'medium' ? 'rgba(255,180,0,.2)' : 'rgba(255,255,255,.1)'}`,
+                    }}>{q.difficulty}</span>
+                  )}
                 </div>
                 <div style={{ fontSize:18, fontWeight:600, lineHeight:1.45, letterSpacing:'-0.01em', marginBottom:6, color:'var(--text)' }}>
                   <QuizMathText text={q.question} />

@@ -4,9 +4,9 @@ export interface QuizQuestion {
   options: string[]
   correct: number
   explanation: string
+  difficulty: 'easy' | 'medium' | 'hard'
 }
 
-// Daily-seeded shuffle — questions rotate every day automatically
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr]
   let s = seed
@@ -18,110 +18,146 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return a
 }
 
+// Return questions sorted by difficulty (easy first), then daily-shuffle within each tier
 export function getDailyQuestions(slug: string, count = 10): QuizQuestion[] {
   const pool = QUIZ_QUESTIONS[slug] ?? []
   if (pool.length === 0) return []
   const today = new Date()
   const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-  const shuffled = seededShuffle(pool, seed)
-  return shuffled.slice(0, Math.min(count, shuffled.length))
+  // Shuffle within each difficulty tier, then concatenate easy → medium → hard
+  const easy   = seededShuffle(pool.filter(q => q.difficulty === 'easy'),   seed)
+  const medium = seededShuffle(pool.filter(q => q.difficulty === 'medium'), seed + 1)
+  const hard   = seededShuffle(pool.filter(q => q.difficulty === 'hard'),   seed + 2)
+  return [...easy, ...medium, ...hard].slice(0, Math.min(count, pool.length))
 }
 
 export const QUIZ_QUESTIONS: Record<string, QuizQuestion[]> = {
+
+  // ──────────────────────────────────────────────
+  // CH 1 — INTRODUCTION
+  // ──────────────────────────────────────────────
   intro: [
-    { id: 'i1', question: 'What is a differential equation?', options: ['An equation involving only algebraic variables', 'An equation relating a function and one or more of its derivatives', 'An equation with two unknowns', 'An equation involving integration only'], correct: 1, explanation: 'A DE relates an unknown function with its derivatives. We solve for a function, not a number.' },
-    { id: 'i2', question: 'The general solution of dy/dx = 2x is:', options: ['y = 2', 'y = x² + C', 'y = 2x + C', 'y = x² - C'], correct: 1, explanation: 'Integrating dy/dx = 2x gives y = x² + C, where C is an arbitrary constant.' },
-    { id: 'i3', question: 'The order of the DE d²y/dx² + 3(dy/dx) = 0 is:', options: ['0', '1', '2', '3'], correct: 2, explanation: 'Order = highest derivative present. Here d²y/dx² makes it second order.' },
-    { id: 'i4', question: 'The degree of the DE (d²y/dx²)³ + dy/dx = x is:', options: ['1', '2', '3', '6'], correct: 2, explanation: 'Degree = power of the highest order derivative when polynomial in derivatives. (d²y/dx²)³ → degree 3.' },
-    { id: 'i5', question: 'A particular solution differs from a general solution in that it:', options: ['Has higher order', 'Has no arbitrary constants', 'Always equals zero', 'Contains more variables'], correct: 1, explanation: 'A particular solution is obtained by assigning specific values to the arbitrary constants (e.g., using initial conditions).' },
-    { id: 'i6', question: 'Which of the following is a linear DE?', options: ['y dy/dx + x = 0', 'd²y/dx² + y² = 0', 'd²y/dx² + 3 dy/dx + 2y = eˣ', '(dy/dx)² = y'], correct: 2, explanation: 'A linear DE has y and its derivatives to the first power only. d²y/dx² + 3dy/dx + 2y = eˣ satisfies this.' },
-    { id: 'i7', question: 'Formation of a DE from y = Ax + B (A, B constants) gives:', options: ['dy/dx = A', 'd²y/dx² = 0', 'd²y/dx² = A', 'dy/dx = 0'], correct: 1, explanation: 'Differentiating twice: dy/dx = A, d²y/dx² = 0. The DE is d²y/dx² = 0.' },
-    { id: 'i8', question: 'The general solution of an nth-order DE contains:', options: ['No constants', 'Exactly n arbitrary constants', 'More than n constants', 'n² constants'], correct: 1, explanation: 'The general solution of an nth-order DE contains exactly n arbitrary constants.' },
-    { id: 'i9', question: 'The DE representing all circles centred at the origin is:', options: ['x + y dy/dx = 0', 'y = mx + c', 'x dx + y dy = 0', 'dy/dx = x/y'], correct: 2, explanation: 'x² + y² = r². Differentiating: 2x + 2y dy/dx = 0 → x dx + y dy = 0.' },
-    { id: 'i10', question: 'The solution of dy/dx = 0 is:', options: ['y = x', 'y = C (constant)', 'y = Cx', 'y = x + C'], correct: 1, explanation: 'If dy/dx = 0, integrating gives y = C, meaning y is a constant function.' },
+    { id: 'i1',  difficulty: 'easy',   question: 'What is a differential equation?', options: ['An equation involving only algebraic variables', 'An equation relating a function and one or more of its derivatives', 'An equation with two unknowns', 'An equation involving integration only'], correct: 1, explanation: 'A DE relates an unknown function with its derivatives. We solve for a function, not a number.' },
+    { id: 'i2',  difficulty: 'easy',   question: 'The general solution of $\\frac{dy}{dx} = 2x$ is:', options: ['$y = 2$', '$y = x^2 + C$', '$y = 2x + C$', '$y = x^2 - C$'], correct: 1, explanation: 'Integrating gives $y = x^2 + C$, where C is an arbitrary constant.' },
+    { id: 'i10', difficulty: 'easy',   question: 'The solution of $\\frac{dy}{dx} = 0$ is:', options: ['$y = x$', '$y = C$ (constant)', '$y = Cx$', '$y = x + C$'], correct: 1, explanation: 'If $\\frac{dy}{dx} = 0$, integrating gives $y = C$.' },
+    { id: 'i5',  difficulty: 'easy',   question: 'A particular solution differs from a general solution in that it:', options: ['Has higher order', 'Has no arbitrary constants', 'Always equals zero', 'Contains more variables'], correct: 1, explanation: 'A particular solution assigns specific values to the arbitrary constants using initial conditions.' },
+    { id: 'i8',  difficulty: 'medium', question: 'The general solution of an nth-order DE contains:', options: ['No constants', 'Exactly n arbitrary constants', 'More than n constants', 'n² constants'], correct: 1, explanation: 'The general solution of an nth-order DE contains exactly n arbitrary constants.' },
+    { id: 'i6',  difficulty: 'medium', question: 'Which of the following is a linear DE?', options: ['$y\\frac{dy}{dx} + x = 0$', '$\\frac{d^2y}{dx^2} + y^2 = 0$', '$\\frac{d^2y}{dx^2} + 3\\frac{dy}{dx} + 2y = e^x$', '$(\\frac{dy}{dx})^2 = y$'], correct: 2, explanation: 'A linear DE has y and its derivatives to the first power only, no products.' },
+    { id: 'i3',  difficulty: 'medium', question: 'The order of the DE $\\frac{d^2y}{dx^2} + 3\\frac{dy}{dx} = 0$ is:', options: ['0', '1', '2', '3'], correct: 2, explanation: 'Order = highest derivative present. $\\frac{d^2y}{dx^2}$ makes it second order.' },
+    { id: 'i9',  difficulty: 'medium', question: 'The DE representing all circles centred at the origin is:', options: ['$x + y\\frac{dy}{dx} = 0$', '$y = mx + c$', '$x\\,dx + y\\,dy = 0$', '$\\frac{dy}{dx} = \\frac{x}{y}$'], correct: 2, explanation: 'From $x^2 + y^2 = r^2$: differentiating gives $2x + 2y\\frac{dy}{dx} = 0$, i.e., $x\\,dx + y\\,dy = 0$.' },
+    { id: 'i4',  difficulty: 'hard',   question: 'The degree of $(\\frac{d^2y}{dx^2})^3 + \\frac{dy}{dx} = x$ is:', options: ['1', '2', '3', '6'], correct: 2, explanation: 'Degree = power of the highest-order derivative. $(y\'\')^3$ → degree 3.' },
+    { id: 'i7',  difficulty: 'hard',   question: 'Forming a DE from $y = Ax + B$ (A, B constants) gives:', options: ['$\\frac{dy}{dx} = A$', '$\\frac{d^2y}{dx^2} = 0$', '$\\frac{d^2y}{dx^2} = A$', '$\\frac{dy}{dx} = 0$'], correct: 1, explanation: 'Two constants → differentiate twice: $y\' = A$, $y\'\' = 0$. The DE is $y\'\' = 0$.' },
   ],
+
+  // ──────────────────────────────────────────────
+  // CH 2 — CLASSIFICATION
+  // ──────────────────────────────────────────────
+  classification: [
+    { id: 'c1',  difficulty: 'easy',   question: 'An ODE involves derivatives with respect to:', options: ['Two or more variables', 'One independent variable', 'Partial derivatives only', 'Time only'], correct: 1, explanation: 'ODE = ordinary DE — one independent variable. PDE = partial DE — two or more.' },
+    { id: 'c2',  difficulty: 'easy',   question: 'The order of $\\frac{dy}{dx} + 2y = \\sin x$ is:', options: ['0', '1', '2', '3'], correct: 1, explanation: 'Highest derivative is $\\frac{dy}{dx}$ — first derivative → order 1.' },
+    { id: 'c3',  difficulty: 'easy',   question: 'Which is a non-linear DE?', options: ['$\\frac{d^2y}{dx^2} + 3y = 0$', '$\\frac{dy}{dx} + 2y = x$', '$y\\frac{dy}{dx} = x$', '$\\frac{d^2y}{dx^2} - y = e^x$'], correct: 2, explanation: '$y \\cdot \\frac{dy}{dx}$ is a product of y and its derivative — non-linear.' },
+    { id: 'c4',  difficulty: 'easy',   question: 'The degree of $\\frac{dy}{dx} + y = e^x$ is:', options: ['0', '1', '2', 'Undefined'], correct: 1, explanation: 'Highest derivative $y\'$ appears to power 1 → degree 1.' },
+    { id: 'c5',  difficulty: 'medium', question: 'Degree of $\\left(\\frac{d^2y}{dx^2}\\right)^3 + y = 0$:', options: ['1', '2', '3', '6'], correct: 2, explanation: 'Highest derivative $y\'\'$ raised to power 3 → degree 3.' },
+    { id: 'c6',  difficulty: 'medium', question: 'The DE $\\frac{\\partial u}{\\partial t} = k\\frac{\\partial^2 u}{\\partial x^2}$ is a:', options: ['First-order ODE', 'Second-order ODE', 'First-order PDE', 'Second-order PDE'], correct: 3, explanation: 'Partial derivatives present → PDE. Highest partial is $\\frac{\\partial^2 u}{\\partial x^2}$ → second-order.' },
+    { id: 'c7',  difficulty: 'medium', question: 'What is the order of $\\frac{d^3y}{dx^3} + x^2 y = 0$?', options: ['1', '2', '3', '4'], correct: 2, explanation: 'Highest derivative is $\\frac{d^3y}{dx^3}$ → order 3.' },
+    { id: 'c8',  difficulty: 'medium', question: 'To find the degree of $\\sqrt{\\frac{dy}{dx}} = 1+x$, we first:', options: ['Differentiate', 'Square both sides', 'Integrate', 'Divide by x'], correct: 1, explanation: 'Clear the radical by squaring: $(y\')^2 = (1+x)^2$. Now degree = 2.' },
+    { id: 'c9',  difficulty: 'hard',   question: 'Which is true about $\\left[1 + \\left(\\frac{dy}{dx}\\right)^2\\right]^{3/2} = \\frac{d^2y}{dx^2}$?', options: ['Order 1, Degree 2', 'Order 2, Degree 1', 'Order 2, Degree 2', 'Order 1, Degree 3'], correct: 2, explanation: 'Squaring both sides: $[1+(y\')^2]^3 = (y\'\')^2$. Highest derivative $y\'\'$ to power 2 → Order 2, Degree 2.' },
+    { id: 'c10', difficulty: 'hard',   question: 'Superposition applies only to:', options: ['Non-linear DEs', 'Linear DEs', 'Exact DEs', 'Bernoulli DEs'], correct: 1, explanation: 'Superposition: if $y_1$ and $y_2$ satisfy a linear homogeneous DE, so does $c_1y_1 + c_2y_2$.' },
+  ],
+
+  // ──────────────────────────────────────────────
+  // CH 3 — FORMATION
+  // ──────────────────────────────────────────────
+  formation: [
+    { id: 'f1',  difficulty: 'easy',   question: 'A family of curves with 2 arbitrary constants gives a DE of order:', options: ['1', '2', '3', '4'], correct: 1, explanation: 'n constants → DE of order n. Two constants → second-order DE.' },
+    { id: 'f2',  difficulty: 'easy',   question: 'The DE for $y = Cx^3$ (C arbitrary) is:', options: ['$3y = xy\'$', '$y\' = 3Cx^2$', '$xy\' - 3y = 0$', '$y\' = C$'], correct: 2, explanation: 'Differentiate: $y\' = 3Cx^2$. From original: $C = y/x^3$. So $y\' = 3(y/x^3)x^2 = 3y/x$, giving $xy\' - 3y = 0$.' },
+    { id: 'f3',  difficulty: 'easy',   question: 'To eliminate n constants from a curve family you need to differentiate:', options: ['Once', 'n-1 times', 'n times', '2n times'], correct: 2, explanation: 'You differentiate n times to generate n extra equations to eliminate n constants.' },
+    { id: 'f4',  difficulty: 'medium', question: 'DE for all straight lines through the origin ($y = mx$) is:', options: ['$y\' = m$', '$xy\' - y = 0$', '$y\' = y/x^2$', '$y\' - x = 0$'], correct: 1, explanation: 'Differentiate $y = mx$: $y\' = m = y/x$, so $xy\' - y = 0$.' },
+    { id: 'f5',  difficulty: 'medium', question: 'DE formed from $y = Ae^x + Be^{-x}$ is:', options: ['$y\'\' - y = 0$', '$y\'\' + y = 0$', '$y\' - y = 0$', '$y\'\' - y\' = 0$'], correct: 0, explanation: '$y\'\' = Ae^x + Be^{-x} = y$, so $y\'\' - y = 0$.' },
+    { id: 'f6',  difficulty: 'medium', question: 'DE for circles centred on the x-axis ($x^2 + (y-a)^2 = r^2$, a,r constants) has order:', options: ['1', '2', '3', '4'], correct: 1, explanation: 'Two constants (a and r) → differentiate twice → order 2.' },
+    { id: 'f7',  difficulty: 'medium', question: 'Which DE represents $y = C_1\\sin x + C_2\\cos x$?', options: ['$y\'\' - y = 0$', '$y\'\' + y = 0$', '$y\' + y = 0$', '$y\'\' - y\' = 0$'], correct: 1, explanation: '$y\'\' = -C_1\\sin x - C_2\\cos x = -y$, so $y\'\' + y = 0$.' },
+    { id: 'f8',  difficulty: 'hard',   question: 'DE for $y = Ae^{2x} + Be^{3x}$ is:', options: ['$y\'\' - 5y\' + 6y = 0$', '$y\'\' + 5y\' + 6y = 0$', '$y\'\' - 5y\' - 6y = 0$', '$y\'\' + 5y\' - 6y = 0$'], correct: 0, explanation: 'Characteristic roots 2 and 3 → $(m-2)(m-3) = m^2 - 5m + 6 = 0$ → $y\'\' - 5y\' + 6y = 0$.' },
+    { id: 'f9',  difficulty: 'hard',   question: 'The DE for parabolas with axis along x-axis ($y^2 = 4ax$) is:', options: ['$y = 2xy\'$', '$yy\' = 2$', '$2y\' = y/x$', '$y = xy\'$'], correct: 0, explanation: 'Differentiate: $2y y\' = 4a$. From original: $4a = y^2/x$. So $2yy\' = y^2/x$, giving $2xy\' = y$, i.e., $y = 2xy\'$.' },
+    { id: 'f10', difficulty: 'hard',   question: 'A DE of order 3 has a general solution with:', options: ['2 constants', '3 constants', '6 constants', '1 constant'], correct: 1, explanation: 'Order n ↔ n arbitrary constants in the general solution.' },
+  ],
+
+  // ──────────────────────────────────────────────
+  // CH 4 — VARIABLE SEPARABLE
+  // ──────────────────────────────────────────────
   separable: [
-    { id: 's1', question: 'Which DE is variable separable?', options: ['dy/dx = x + y', 'dy/dx = xy', 'dy/dx = x² + y²', 'x dy + y dx = xy dy'], correct: 1, explanation: 'dy/dx = xy → dy/y = x dx. Variables x and y are separated on opposite sides.' },
-    { id: 's2', question: 'Solving dy/dx = y gives:', options: ['y = x + C', 'y = Ceˣ', 'y = Ce⁻ˣ', 'y = eˣ + C'], correct: 1, explanation: 'Separating: dy/y = dx → ln|y| = x + C₁ → y = Ceˣ.' },
-    { id: 's3', question: 'The general solution of dy/dx = x/y is:', options: ['y² = x² + C', 'y = x + C', 'y² - x² = C', 'y² = 2x² + C'], correct: 0, explanation: 'y dy = x dx → y²/2 = x²/2 + C₁ → y² = x² + C.' },
-    { id: 's4', question: 'For dy/dx = (1+y²)/(1+x²), after separating variables you get:', options: ['dy/(1+y²) = dx/(1+x²)', 'dy(1+y²) = dx(1+x²)', '(1+y²)dy = dx', 'dy = (1+x²)dx/(1+y²)'], correct: 0, explanation: 'Rearranging: dy/(1+y²) = dx/(1+x²). Integrating gives arctan y = arctan x + C.' },
-    { id: 's5', question: 'Solving (1+x) dy = y dx gives:', options: ['y = C(1+x)', 'y = Ceˣ/(1+x)', 'y = C/(1+x)', 'y = x/(1+x)'], correct: 0, explanation: 'dy/y = dx/(1+x) → ln|y| = ln|1+x| + C₁ → y = C(1+x).' },
-    { id: 's6', question: 'The solution of dy/dx = e^(x-y) is:', options: ['eʸ = eˣ + C', 'e⁻ʸ = eˣ + C', 'eʸ + eˣ = C', 'eʸ - eˣ = C'], correct: 0, explanation: 'dy/dx = eˣ·e⁻ʸ → eʸ dy = eˣ dx → eʸ = eˣ + C.' },
-    { id: 's7', question: 'For a separable DE f(x) dx + g(y) dy = 0, the solution is:', options: ['∫f(x)dx = ∫g(y)dy', '∫f(x)dx + ∫g(y)dy = C', 'f(x) + g(y) = C', 'f(x)g(y) = C'], correct: 1, explanation: 'Integrating both sides of f(x)dx + g(y)dy = 0 gives ∫f(x)dx + ∫g(y)dy = C.' },
-    { id: 's8', question: 'The particular solution of dy/dx = 2y, y(0) = 3 is:', options: ['y = 3e²ˣ', 'y = 2e³ˣ', 'y = 3e⁻²ˣ', 'y = eˣ + 2'], correct: 0, explanation: 'General: y = Ce²ˣ. At x=0: 3 = C → y = 3e²ˣ.' },
-    { id: 's9', question: 'Which substitution reduces dy/dx = f(ax + by + c) to separable form?', options: ['v = y/x', 'v = ax + by + c', 'v = x + y', 'v = x/y'], correct: 1, explanation: 'Setting v = ax + by + c gives dv/dx = a + b·f(v), which is separable.' },
-    { id: 's10', question: 'The solution of sec²x tan y dx + sec²y tan x dy = 0 is:', options: ['tan x · tan y = C', 'tan x + tan y = C', 'sec x · sec y = C', 'sin x + sin y = C'], correct: 0, explanation: 'Separating and integrating: ln|tan x| + ln|tan y| = ln C → tan x · tan y = C.' },
+    { id: 's1',  difficulty: 'easy',   question: 'Which DE is variable separable?', options: ['$\\frac{dy}{dx} = x + y$', '$\\frac{dy}{dx} = xy$', '$\\frac{dy}{dx} = x^2 + y^2$', '$x\\,dy + y\\,dx = xy\\,dy$'], correct: 1, explanation: '$\\frac{dy}{dx} = xy$ → $\\frac{dy}{y} = x\\,dx$. Variables are cleanly separated.' },
+    { id: 's2',  difficulty: 'easy',   question: 'Solving $\\frac{dy}{dx} = y$ gives:', options: ['$y = x + C$', '$y = Ce^x$', '$y = Ce^{-x}$', '$y = e^x + C$'], correct: 1, explanation: 'Separating: $\\frac{dy}{y} = dx$ → $\\ln|y| = x + C_1$ → $y = Ce^x$.' },
+    { id: 's8',  difficulty: 'easy',   question: 'Particular solution of $\\frac{dy}{dx} = 2y$ with $y(0) = 3$:', options: ['$y = 3e^{2x}$', '$y = 2e^{3x}$', '$y = 3e^{-2x}$', '$y = e^x + 2$'], correct: 0, explanation: 'General: $y = Ce^{2x}$. At $x=0$: $3 = C$. So $y = 3e^{2x}$.' },
+    { id: 's3',  difficulty: 'easy',   question: 'General solution of $\\frac{dy}{dx} = \\frac{x}{y}$ is:', options: ['$y^2 = x^2 + C$', '$y = x + C$', '$y^2 - x^2 = C$', '$y^2 = 2x^2 + C$'], correct: 0, explanation: '$y\\,dy = x\\,dx$ → $\\frac{y^2}{2} = \\frac{x^2}{2} + C_1$ → $y^2 = x^2 + C$.' },
+    { id: 's5',  difficulty: 'medium', question: 'Solving $(1+x)\\,dy = y\\,dx$ gives:', options: ['$y = C(1+x)$', '$y = Ce^x/(1+x)$', '$y = C/(1+x)$', '$y = x/(1+x)$'], correct: 0, explanation: '$\\frac{dy}{y} = \\frac{dx}{1+x}$ → $\\ln|y| = \\ln|1+x| + C_1$ → $y = C(1+x)$.' },
+    { id: 's4',  difficulty: 'medium', question: 'For $\\frac{dy}{dx} = \\frac{1+y^2}{1+x^2}$, after separating you get:', options: ['$\\frac{dy}{1+y^2} = \\frac{dx}{1+x^2}$', '$dy(1+y^2) = dx(1+x^2)$', '$(1+y^2)\\,dy = dx$', '$dy = (1+x^2)\\,dx/(1+y^2)$'], correct: 0, explanation: 'Rearranging: $\\frac{dy}{1+y^2} = \\frac{dx}{1+x^2}$. Integrating gives $\\arctan y = \\arctan x + C$.' },
+    { id: 's6',  difficulty: 'medium', question: 'Solution of $\\frac{dy}{dx} = e^{x-y}$ is:', options: ['$e^y = e^x + C$', '$e^{-y} = e^x + C$', '$e^y + e^x = C$', '$e^y - e^x = C$'], correct: 0, explanation: '$e^y\\,dy = e^x\\,dx$ → $e^y = e^x + C$.' },
+    { id: 's9',  difficulty: 'medium', question: 'Which substitution reduces $\\frac{dy}{dx} = f(ax+by+c)$ to separable form?', options: ['$v = y/x$', '$v = ax+by+c$', '$v = x+y$', '$v = x/y$'], correct: 1, explanation: 'Setting $v = ax+by+c$ gives $\\frac{dv}{dx} = a + b f(v)$, which is separable.' },
+    { id: 's7',  difficulty: 'hard',   question: 'Solution of $\\sec^2 x\\tan y\\,dx + \\sec^2 y\\tan x\\,dy = 0$:', options: ['$\\tan x \\cdot \\tan y = C$', '$\\tan x + \\tan y = C$', '$\\sec x \\cdot \\sec y = C$', '$\\sin x + \\sin y = C$'], correct: 0, explanation: 'Dividing by $\\tan x \\tan y$: $\\frac{\\sec^2 x}{\\tan x}dx + \\frac{\\sec^2 y}{\\tan y}dy = 0$. Integrating: $\\ln|\\tan x| + \\ln|\\tan y| = \\ln C$.' },
+    { id: 's10', difficulty: 'hard',   question: 'Particular solution of $\\frac{dy}{dx} = -2xy^2$, $y(0) = 2$:', options: ['$y = \\frac{2}{2x^2+1}$', '$y = \\frac{1}{x^2+1}$', '$y = 2e^{-x^2}$', '$y = \\frac{1}{2x^2-1}$'], correct: 0, explanation: '$-y^{-2}\\,dy = 2x\\,dx$ → $\\frac{1}{y} = x^2 + C$. At $y(0)=2$: $C=\\frac{1}{2}$, so $y = \\frac{2}{2x^2+1}$.' },
   ],
+
+  // ──────────────────────────────────────────────
+  // CH 5 — HOMOGENEOUS
+  // ──────────────────────────────────────────────
   homogeneous: [
-    { id: 'h1', question: 'A homogeneous function of degree n satisfies:', options: ['f(x,y) = n·f(x,y)', 'f(tx,ty) = tⁿ f(x,y)', 'f(x+t, y+t) = tⁿ f(x,y)', 'f(x,y) = xⁿ + yⁿ'], correct: 1, explanation: 'A function is homogeneous of degree n if f(tx,ty) = tⁿ f(x,y) for all t.' },
-    { id: 'h2', question: 'The substitution used to solve a homogeneous DE dy/dx = f(y/x) is:', options: ['y = vx²', 'y = vx', 'x = vy', 'y = v + x'], correct: 1, explanation: 'y = vx (dy/dx = v + x dv/dx) transforms any homogeneous DE into separable form.' },
-    { id: 'h3', question: 'The DE (x² + y²)dx - 2xy dy = 0 is:', options: ['Linear', 'Exact', 'Homogeneous of degree 2', 'Bernoulli'], correct: 2, explanation: 'Each term has degree 2 in x and y. f(tx,ty) = t² f(x,y) confirms homogeneous degree 2.' },
-    { id: 'h4', question: 'After y = vx in dy/dx = (x+y)/(x-y), x dv/dx equals:', options: ['(1+v²)/(1-v)', 'v + 1', '1/(1-v)', '(1+v)/(1-v) - v'], correct: 3, explanation: 'dy/dx = (1+v)/(1-v). Since dy/dx = v + x dv/dx: x dv/dx = (1+v)/(1-v) - v.' },
-    { id: 'h5', question: 'The solution of x dy/dx = y + x is:', options: ['y = x ln x + Cx', 'y = x ln x + C', 'y = Cx - x', 'y = Cx'], correct: 0, explanation: 'Put y = vx: x dv/dx = 1 → v = ln x + C → y = x(ln x + C) = x ln x + Cx.' },
-    { id: 'h6', question: 'Is x² dy/dx = y² + xy homogeneous?', options: ['No, mixed terms', 'Yes, degree 2', 'Yes, degree 1', 'No, it is linear'], correct: 1, explanation: 'dy/dx = (y² + xy)/x². f(tx,ty)/t² = same → degree 0 in dy/dx → homogeneous.' },
-    { id: 'h7', question: 'For dy/dx = (ax+by+c)/(dx+ey+f) with a/d = b/e, the substitution is:', options: ['y = vx', 'Shift x = X+h, y = Y+k', 'v = ax + by', 'v = x + y'], correct: 2, explanation: 'When a/d = b/e lines are parallel; shift fails. Set v = ax + by to get separable.' },
-    { id: 'h8', question: 'The general solution of dy/dx = y/x is:', options: ['y = Cx²', 'y = x + C', 'y = Cx', 'ln y = x + C'], correct: 2, explanation: 'Separating: dy/y = dx/x → ln|y| = ln|x| + ln|C| → y = Cx.' },
-    { id: 'h9', question: 'After solving in terms of v and x, the final step is:', options: ['Leave in v', 'Substitute back v = y/x', 'Differentiate once more', 'Multiply by x'], correct: 1, explanation: 'Since v = y/x, substitute back to express the solution in x and y.' },
-    { id: 'h10', question: 'The DE dy/dx = (x³ + y³)/(xy²) is:', options: ['Separable', 'Linear of order 1', 'Homogeneous of degree 0', 'Exact'], correct: 2, explanation: 'Numerator degree 3, denominator degree 3 → dy/dx has degree 0 → homogeneous.' },
+    { id: 'h2',  difficulty: 'easy',   question: 'The substitution for a homogeneous DE $\\frac{dy}{dx} = f(y/x)$ is:', options: ['$y = vx^2$', '$y = vx$', '$x = vy$', '$y = v + x$'], correct: 1, explanation: '$y = vx$ gives $\\frac{dy}{dx} = v + x\\frac{dv}{dx}$, converting any homogeneous DE to separable form.' },
+    { id: 'h8',  difficulty: 'easy',   question: 'General solution of $\\frac{dy}{dx} = \\frac{y}{x}$ is:', options: ['$y = Cx^2$', '$y = x + C$', '$y = Cx$', '$\\ln y = x + C$'], correct: 2, explanation: '$\\frac{dy}{y} = \\frac{dx}{x}$ → $\\ln|y| = \\ln|x| + \\ln|C|$ → $y = Cx$.' },
+    { id: 'h5',  difficulty: 'easy',   question: 'Solution of $x\\frac{dy}{dx} = y + x$ is:', options: ['$y = x\\ln x + Cx$', '$y = x\\ln x + C$', '$y = Cx - x$', '$y = Cx$'], correct: 0, explanation: 'Substitute $y = vx$: $x\\frac{dv}{dx} = 1$ → $v = \\ln x + C$ → $y = x(\\ln x + C)$.' },
+    { id: 'h1',  difficulty: 'medium', question: 'A function $f(x,y)$ is homogeneous of degree n if:', options: ['$f(x,y) = n\\cdot f(x,y)$', '$f(tx,ty) = t^n f(x,y)$', '$f(x+t,y+t) = t^n f(x,y)$', '$f(x,y) = x^n + y^n$'], correct: 1, explanation: 'Definition: $f(tx,ty) = t^n f(x,y)$ for all t.' },
+    { id: 'h3',  difficulty: 'medium', question: '$(x^2 + y^2)\\,dx - 2xy\\,dy = 0$ is:', options: ['Linear', 'Exact', 'Homogeneous of degree 2', 'Bernoulli'], correct: 2, explanation: 'Each term is degree 2. $f(tx,ty) = t^2 f(x,y)$ → homogeneous degree 2.' },
+    { id: 'h6',  difficulty: 'medium', question: 'Is $x^2\\frac{dy}{dx} = y^2 + xy$ homogeneous?', options: ['No, mixed terms', 'Yes, degree 2', 'Yes, degree 0 in dy/dx', 'No, it is linear'], correct: 2, explanation: '$\\frac{dy}{dx} = \\frac{y^2+xy}{x^2}$ — numerator and denominator both degree 2 → $\\frac{dy}{dx}$ is degree 0 → homogeneous.' },
+    { id: 'h9',  difficulty: 'medium', question: 'After solving in v and x, the final step is:', options: ['Leave in v', 'Substitute back $v = y/x$', 'Differentiate once more', 'Multiply by x'], correct: 1, explanation: 'Since $v = y/x$, substitute back to express in x and y.' },
+    { id: 'h4',  difficulty: 'hard',   question: 'After $y = vx$ in $\\frac{dy}{dx} = \\frac{x+y}{x-y}$, $x\\frac{dv}{dx}$ equals:', options: ['$\\frac{1+v^2}{1-v}$', '$v + 1$', '$\\frac{1}{1-v}$', '$\\frac{1+v}{1-v} - v$'], correct: 0, explanation: '$x\\frac{dv}{dx} = \\frac{1+v}{1-v} - v = \\frac{1+v - v(1-v)}{1-v} = \\frac{1+v^2}{1-v}$.' },
+    { id: 'h7',  difficulty: 'hard',   question: 'For $\\frac{dy}{dx} = \\frac{ax+by+c}{dx+ey+f}$ with $a/d = b/e$, the substitution is:', options: ['$y = vx$', 'Shift $x = X+h, y = Y+k$', '$v = ax + by$', '$v = x + y$'], correct: 2, explanation: 'When $a/d = b/e$, lines are parallel — shifting fails. Set $v = ax + by$ to get separable.' },
+    { id: 'h10', difficulty: 'hard',   question: '$\\frac{dy}{dx} = \\frac{x^3 + y^3}{xy^2}$ is:', options: ['Separable', 'Linear', 'Homogeneous of degree 0', 'Exact'], correct: 2, explanation: 'Numerator degree 3, denominator degree 3 → $\\frac{dy}{dx}$ is degree 0 in x,y → homogeneous.' },
   ],
-  linear: [
-    { id: 'l1', question: 'The standard form of a first-order linear DE is:', options: ['dy/dx + P(x)y = Q(x)', 'dy/dx = P(x) + Q(x)y', 'P(x)y² + Q(x)y = R(x)', 'd²y/dx² + Py = Q'], correct: 0, explanation: 'Standard form: dy/dx + P(x)y = Q(x), with P and Q functions of x only.' },
-    { id: 'l2', question: 'The integrating factor (IF) for dy/dx + P(x)y = Q(x) is:', options: ['e^(∫P dx)', 'e^(∫Q dx)', '∫P dx', 'P(x)'], correct: 0, explanation: 'IF = e^(∫P dx) makes the left side the exact derivative d/dx[y·IF].' },
-    { id: 'l3', question: 'After multiplying by IF, the linear DE becomes:', options: ['d/dx[y·IF] = Q·IF', 'd/dx[IF] = Q', 'y·IF = ∫Q dx', 'IF·dy/dx = Q'], correct: 0, explanation: 'The left side collapses to d/dx[y·IF] = Q·IF, which integrates directly.' },
-    { id: 'l4', question: 'The IF for dy/dx + (1/x)y = x² is:', options: ['x', 'eˣ', 'ln x', '1/x'], correct: 0, explanation: 'P(x) = 1/x. IF = e^(∫1/x dx) = e^(ln x) = x.' },
-    { id: 'l5', question: 'Solving dy/dx - y = eˣ gives:', options: ['y = (x+C)eˣ', 'y = xeˣ + Ceˣ', 'y = Ce⁻ˣ + eˣ', 'y = xeˣ + C'], correct: 0, explanation: 'P = -1, IF = e^(-x). d/dx[ye^(-x)] = 1. Integrate: ye^(-x) = x + C → y = (x+C)eˣ.' },
-    { id: 'l6', question: 'A first-order linear DE general solution has how many arbitrary constants?', options: ['0', '1', '2', 'Depends on P(x)'], correct: 1, explanation: 'Order 1 → exactly 1 arbitrary constant in the general solution.' },
-    { id: 'l7', question: 'The DE dy/dx + y tan x = sec x has IF:', options: ['sec x', 'cos x', 'sin x', 'tan x'], correct: 0, explanation: 'P = tan x. IF = e^(∫tan x dx) = e^(ln sec x) = sec x.' },
-    { id: 'l8', question: 'For x dy/dx + 2y = x³ in standard form, P(x) is:', options: ['2', '2/x', 'x', 'x²'], correct: 1, explanation: 'Divide by x: dy/dx + (2/x)y = x². So P(x) = 2/x.' },
-    { id: 'l9', question: 'Which is NOT a first-order linear DE?', options: ['dy/dx + 2y = sin x', 'dy/dx = y tan x + sec x', 'dy/dx + y² = x', 'x dy/dx - y = x²'], correct: 2, explanation: 'dy/dx + y² = x is non-linear due to y². Linear DEs need y to the first power only.' },
-    { id: 'l10', question: 'After finding y·IF = ∫Q·IF dx + C, y equals:', options: ['IF · (∫Q·IF dx + C)', '(∫Q·IF dx + C) / IF', '∫Q·IF dx', '(Q + C) / IF'], correct: 1, explanation: 'Dividing both sides by IF: y = (∫Q·IF dx + C) / IF.' },
+
+  // ──────────────────────────────────────────────
+  // CH 6 — LINEAR DE
+  // ──────────────────────────────────────────────
+  'linear-de': [
+    { id: 'l1',  difficulty: 'easy',   question: 'Standard form of a first-order linear DE is:', options: ['$\\frac{dy}{dx} + P(x)y = Q(x)$', '$\\frac{dy}{dx} = P(x) + Q(x)y$', '$P(x)y^2 + Q(x)y = R(x)$', '$\\frac{d^2y}{dx^2} + Py = Q$'], correct: 0, explanation: 'Standard form: $\\frac{dy}{dx} + P(x)y = Q(x)$, with P and Q functions of x only.' },
+    { id: 'l2',  difficulty: 'easy',   question: 'The integrating factor (I.F.) for $\\frac{dy}{dx} + P(x)y = Q(x)$ is:', options: ['$e^{\\int P\\,dx}$', '$e^{\\int Q\\,dx}$', '$\\int P\\,dx$', '$P(x)$'], correct: 0, explanation: 'I.F. $= e^{\\int P\\,dx}$.' },
+    { id: 'l4',  difficulty: 'easy',   question: 'The I.F. for $\\frac{dy}{dx} + \\frac{y}{x} = x^2$ is:', options: ['$x$', '$e^x$', '$\\ln x$', '$1/x$'], correct: 0, explanation: '$P(x) = 1/x$. I.F. $= e^{\\int 1/x\\,dx} = e^{\\ln x} = x$.' },
+    { id: 'l6',  difficulty: 'easy',   question: 'A first-order linear DE has how many arbitrary constants?', options: ['0', '1', '2', 'Depends on P(x)'], correct: 1, explanation: 'Order 1 → exactly 1 arbitrary constant.' },
+    { id: 'l3',  difficulty: 'medium', question: 'After multiplying by I.F., the linear DE becomes:', options: ['$\\frac{d}{dx}[y \\cdot \\text{I.F.}] = Q \\cdot \\text{I.F.}$', '$\\frac{d}{dx}[\\text{I.F.}] = Q$', '$y \\cdot \\text{I.F.} = \\int Q\\,dx$', '$\\text{I.F.}\\frac{dy}{dx} = Q$'], correct: 0, explanation: 'Left side collapses to $\\frac{d}{dx}[y \\cdot \\text{I.F.}]$, which integrates directly.' },
+    { id: 'l8',  difficulty: 'medium', question: 'For $x\\frac{dy}{dx} + 2y = x^3$ in standard form, $P(x)$ is:', options: ['2', '$2/x$', '$x$', '$x^2$'], correct: 1, explanation: 'Divide by x: $\\frac{dy}{dx} + \\frac{2}{x}y = x^2$. So $P(x) = 2/x$.' },
+    { id: 'l7',  difficulty: 'medium', question: 'The DE $\\frac{dy}{dx} + y\\tan x = \\sec x$ has I.F.:', options: ['$\\sec x$', '$\\cos x$', '$\\sin x$', '$\\tan x$'], correct: 0, explanation: '$P = \\tan x$. I.F. $= e^{\\int \\tan x\\,dx} = e^{\\ln|\\sec x|} = \\sec x$.' },
+    { id: 'l9',  difficulty: 'medium', question: 'Which is NOT a first-order linear DE?', options: ['$\\frac{dy}{dx} + 2y = \\sin x$', '$\\frac{dy}{dx} = y\\tan x + \\sec x$', '$\\frac{dy}{dx} + y^2 = x$', '$x\\frac{dy}{dx} - y = x^2$'], correct: 2, explanation: '$\\frac{dy}{dx} + y^2 = x$ is non-linear — $y$ appears squared.' },
+    { id: 'l5',  difficulty: 'hard',   question: 'Solving $\\frac{dy}{dx} - y = e^x$ gives:', options: ['$y = (x+C)e^x$', '$y = xe^x + Ce^x$', '$y = Ce^{-x} + e^x$', '$y = xe^x + C$'], correct: 0, explanation: 'P = -1, I.F. = $e^{-x}$. $\\frac{d}{dx}[ye^{-x}] = 1$ → $ye^{-x} = x + C$ → $y = (x+C)e^x$.' },
+    { id: 'l10', difficulty: 'hard',   question: 'After finding $y \\cdot \\text{I.F.} = \\int Q \\cdot \\text{I.F.}\\,dx + C$, $y$ equals:', options: ['$\\text{I.F.} \\cdot (\\int Q\\cdot\\text{I.F.}\\,dx + C)$', '$(\\int Q\\cdot\\text{I.F.}\\,dx + C) / \\text{I.F.}$', '$\\int Q\\cdot\\text{I.F.}\\,dx$', '$(Q + C)/\\text{I.F.}$'], correct: 1, explanation: 'Divide both sides by I.F.: $y = (\\int Q\\cdot\\text{I.F.}\\,dx + C) / \\text{I.F.}$.' },
   ],
+
+  // ──────────────────────────────────────────────
+  // CH 7 — BERNOULLI
+  // ──────────────────────────────────────────────
   bernoulli: [
-    { id: 'b1', question: "Bernoulli's equation has the form:", options: ['dy/dx + P(x)y = Q(x)yⁿ', 'dy/dx + P(x)y² = Q(x)', 'd²y/dx² + Py = Qyⁿ', 'dy/dx + Py = Q/yⁿ'], correct: 0, explanation: "Bernoulli's standard form is dy/dx + P(x)y = Q(x)yⁿ, where n ≠ 0,1." },
-    { id: 'b2', question: 'The substitution that reduces a Bernoulli DE to linear is:', options: ['v = yⁿ', 'v = y^(1-n)', 'v = 1/y', 'v = ln y'], correct: 1, explanation: 'v = y^(1-n) so dv/dx = (1-n)y^(-n)dy/dx, turning the equation linear in v.' },
-    { id: 'b3', question: 'For dy/dx + y = y², n equals:', options: ['0', '1', '2', '-1'], correct: 2, explanation: 'Comparing with dy/dx + Py = Qyⁿ: n = 2.' },
-    { id: 'b4', question: 'After substituting v = y^(1-n) in a Bernoulli DE, the resulting equation in v is:', options: ['Separable', 'Homogeneous', 'Linear in v', 'Exact'], correct: 2, explanation: 'Substitution always gives dv/dx + (1-n)P(x)v = (1-n)Q(x), linear in v.' },
-    { id: 'b5', question: 'For dy/dx - y = xy², setting v = y⁻¹ gives:', options: ['dv/dx + v = -x', 'dv/dx - v = -x', 'dv/dx + v = x', 'dv/dx - v = x'], correct: 0, explanation: 'Multiply by -y⁻², set v = y⁻¹: dv/dx + v = -x.' },
-    { id: 'b6', question: 'If n = 0 in a Bernoulli DE, the equation is:', options: ['A homogeneous DE', 'Already a standard linear DE', 'Separable only', 'An exact DE'], correct: 1, explanation: 'n = 0: yⁿ = 1, giving dy/dx + Py = Q — already linear.' },
-    { id: 'b7', question: 'If n = 1, the Bernoulli DE dy/dx + Py = Qy is solved by:', options: ['Bernoulli substitution', 'Separating variables', 'Homogeneous substitution', 'IF only'], correct: 1, explanation: 'n = 1: dy/dx = (Q-P)y → dy/y = (Q-P)dx — separable.' },
-    { id: 'b8', question: 'The DE dy/dx + (1/x)y = x²y³ has n = ?', options: ['1', '2', '3', '-3'], correct: 2, explanation: 'Right side is x²y³, so n = 3. Substitution: v = y^(1-3) = y⁻².' },
-    { id: 'b9', question: 'Dividing Bernoulli DE by yⁿ gives:', options: ['y⁻ⁿ dy/dx + Py^(1-n) = Q', 'dy/dx + P = Q', 'y⁻ⁿ dy/dx - Py^(1-n) = Q', 'dy/dx + Pyⁿ = Q'], correct: 0, explanation: 'Dividing by yⁿ: y⁻ⁿ dy/dx + P·y^(1-n) = Q. Now set v = y^(1-n).' },
-    { id: 'b10', question: 'After solving for v, the final answer is obtained by:', options: ['Leaving in v', 'Substituting back v = y^(1-n)', 'Multiplying by n', 'Differentiating v'], correct: 1, explanation: 'Since v = y^(1-n), substitute back to express in original variable y.' },
+    { id: 'b1',  difficulty: 'easy',   question: "Bernoulli's equation has the form:", options: ['$\\frac{dy}{dx} + P(x)y = Q(x)y^n$', '$\\frac{dy}{dx} + P(x)y^2 = Q(x)$', '$\\frac{d^2y}{dx^2} + Py = Qy^n$', '$\\frac{dy}{dx} + Py = Q/y^n$'], correct: 0, explanation: "Standard Bernoulli form: $\\frac{dy}{dx} + Py = Qy^n$, $n \\neq 0, 1$." },
+    { id: 'b3',  difficulty: 'easy',   question: 'For $\\frac{dy}{dx} + y = y^2$, $n$ equals:', options: ['0', '1', '2', '-1'], correct: 2, explanation: 'Comparing with $\\frac{dy}{dx} + Py = Qy^n$: the right side is $y^2$ so $n = 2$.' },
+    { id: 'b6',  difficulty: 'easy',   question: 'If $n = 0$ in Bernoulli, the equation is:', options: ['Homogeneous', 'Already linear', 'Separable only', 'Exact'], correct: 1, explanation: '$y^0 = 1$, giving $\\frac{dy}{dx} + Py = Q$ — standard linear DE.' },
+    { id: 'b7',  difficulty: 'easy',   question: 'If $n = 1$, Bernoulli DE $\\frac{dy}{dx} + Py = Qy$ is solved by:', options: ['Bernoulli substitution', 'Separating variables', 'Homogeneous method', 'I.F. only'], correct: 1, explanation: '$n=1$: $\\frac{dy}{dx} = (Q-P)y$ → $\\frac{dy}{y} = (Q-P)dx$ — separable.' },
+    { id: 'b2',  difficulty: 'medium', question: 'Substitution that linearises a Bernoulli DE is:', options: ['$v = y^n$', '$v = y^{1-n}$', '$v = 1/y$', '$v = \\ln y$'], correct: 1, explanation: '$v = y^{1-n}$ so $\\frac{dv}{dx} = (1-n)y^{-n}\\frac{dy}{dx}$, converting to linear in v.' },
+    { id: 'b4',  difficulty: 'medium', question: 'After substituting $v = y^{1-n}$, the DE in v is:', options: ['Separable', 'Homogeneous', 'Linear in v', 'Exact'], correct: 2, explanation: 'Substitution always gives $\\frac{dv}{dx} + (1-n)Pv = (1-n)Q$ — linear in v.' },
+    { id: 'b8',  difficulty: 'medium', question: '$\\frac{dy}{dx} + \\frac{y}{x} = x^2 y^3$ has $n = ?$ and substitution $v = ?$', options: ['$n=2$, $v = y^{-1}$', '$n=3$, $v = y^{-2}$', '$n=3$, $v = y^{-3}$', '$n=2$, $v = y^{2}$'], correct: 1, explanation: 'Right side is $x^2 y^3$ → $n = 3$. Substitution: $v = y^{1-3} = y^{-2}$.' },
+    { id: 'b5',  difficulty: 'hard',   question: 'For $\\frac{dy}{dx} - y = xy^2$, setting $v = y^{-1}$ gives:', options: ['$\\frac{dv}{dx} + v = -x$', '$\\frac{dv}{dx} - v = -x$', '$\\frac{dv}{dx} + v = x$', '$\\frac{dv}{dx} - v = x$'], correct: 0, explanation: 'Divide by $y^2$, set $v = y^{-1}$, recall $v\' = -y^{-2}y\'$: gives $-v\' - v = -x \\cdot$ ... rearranging yields $v\' + v = -x$.' },
+    { id: 'b9',  difficulty: 'hard',   question: 'Dividing Bernoulli DE by $y^n$ gives:', options: ['$y^{-n}\\frac{dy}{dx} + Py^{1-n} = Q$', '$\\frac{dy}{dx} + P = Q$', '$y^{-n}\\frac{dy}{dx} - Py^{1-n} = Q$', '$\\frac{dy}{dx} + Py^n = Q$'], correct: 0, explanation: 'Dividing $\\frac{dy}{dx} + Py = Qy^n$ by $y^n$: $y^{-n}\\frac{dy}{dx} + Py^{1-n} = Q$.' },
+    { id: 'b10', difficulty: 'hard',   question: 'After solving for v, the final step is:', options: ['Leave in v', 'Substitute back $v = y^{1-n}$', 'Multiply by n', 'Differentiate v'], correct: 1, explanation: 'Since $v = y^{1-n}$, back-substitution gives the answer in the original variable y.' },
   ],
-  exact: [
-    { id: 'e1', question: 'The DE M dx + N dy = 0 is exact if:', options: ['∂M/∂x = ∂N/∂y', '∂M/∂y = ∂N/∂x', 'M = N', '∂²M/∂x² = ∂²N/∂y²'], correct: 1, explanation: 'Exactness condition: ∂M/∂y = ∂N/∂x. This ensures M dx + N dy = dF for some F(x,y).' },
-    { id: 'e2', question: 'If M dx + N dy = 0 is exact, F(x,y) satisfies:', options: ['∂F/∂x = N and ∂F/∂y = M', '∂F/∂x = M and ∂F/∂y = N', 'F = ∫M dx = ∫N dy', '∂F/∂x = ∂F/∂y'], correct: 1, explanation: 'dF = M dx + N dy means ∂F/∂x = M and ∂F/∂y = N.' },
-    { id: 'e3', question: 'When integrating M w.r.t. x for an exact DE, the "constant" is:', options: ['A numeric constant', 'A function of y only, φ(y)', 'A function of x only', 'Zero'], correct: 1, explanation: 'Integrating M w.r.t. x, the constant can depend on y: it is φ(y), found from ∂F/∂y = N.' },
-    { id: 'e4', question: 'Is (2xy) dx + (x² - 1) dy = 0 exact?', options: ['Yes, ∂M/∂y = ∂N/∂x = 2x', 'No, ∂M/∂y ≠ ∂N/∂x', 'Yes, because M + N = x² + 2xy - 1', 'Cannot be determined'], correct: 0, explanation: '∂M/∂y = 2x and ∂N/∂x = 2x. Equal → exact.' },
-    { id: 'e5', question: 'The solution of (2x + y) dx + (x - 2y) dy = 0 is:', options: ['x² + xy - y² = C', 'x² + xy + y² = C', 'x² - xy - y² = C', '2x + xy = C'], correct: 0, explanation: 'F = ∫(2x+y)dx = x²+xy+φ(y). ∂F/∂y = x+φ(y) = x-2y → φ = -y². So x²+xy-y² = C.' },
-    { id: 'e6', question: 'An IF μ(x) for a non-exact DE exists when:', options: ['(∂M/∂y - ∂N/∂x)/N is a function of x only', '(∂M/∂y - ∂N/∂x)/M is a function of y only', 'Both of the above', 'Neither'], correct: 0, explanation: 'If (My - Nx)/N = f(x) only, then IF = e^(∫f dx).' },
-    { id: 'e7', question: 'Is (y² + 2xy) dx + (2xy + x²) dy = 0 exact?', options: ['Yes, ∂M/∂y = ∂N/∂x = 2y + 2x', 'No', 'Yes, terms cancel', 'It is separable'], correct: 0, explanation: '∂M/∂y = 2y+2x and ∂N/∂x = 2y+2x. Equal → exact.' },
-    { id: 'e8', question: 'After finding F(x,y), the general solution is written as:', options: ['F(x,y) = 0', 'F(x,y) = C', 'dF = 0', 'F(x,y) + C = 0'], correct: 1, explanation: 'General solution: F(x,y) = C, with C an arbitrary constant.' },
-    { id: 'e9', question: 'The shortcut for F in exact DEs is:', options: ['∫M dx + ∫(terms in N not involving x) dy = C', '∫M dx · ∫N dy = C', '∫(M+N) dx = C', '∫M/N dx = C'], correct: 0, explanation: 'F = ∫M dx (y constant) + ∫(N terms free of x) dy = C.' },
-    { id: 'e10', question: 'The exactness condition ∂M/∂y = ∂N/∂x comes from:', options: ['Mean Value Theorem', "Clairaut's theorem on mixed partials", "Green's theorem", "Euler's theorem"], correct: 1, explanation: "If F exists with Fx = M, Fy = N, Clairaut's theorem gives Fyx = Fxy → My = Nx." },
-  ],
-  applications: [
-    { id: 'a1', question: "Newton's law of cooling states:", options: ['dT/dt = k(T - Tₛ) where k > 0', 'dT/dt = k(Tₛ - T) where k > 0', 'dT/dt = kT²', 'dT/dt = -kTₛ'], correct: 1, explanation: 'Rate of cooling proportional to temperature difference: dT/dt = k(Tₛ - T), k > 0.' },
-    { id: 'a2', question: 'DE for exponential population growth with rate k:', options: ['dP/dt = k', 'dP/dt = kP', 'dP/dt = k/P', 'd²P/dt² = kP'], correct: 1, explanation: 'Malthusian growth: rate proportional to population → dP/dt = kP.' },
-    { id: 'a3', question: 'A body falls with air resistance proportional to velocity. The DE is:', options: ['m dv/dt = mg', 'm dv/dt = mg - kv', 'm dv/dt = mg + kv', 'm dv/dt = -kv'], correct: 1, explanation: 'Gravity mg downward, resistance kv upward: m dv/dt = mg - kv.' },
-    { id: 'a4', question: 'Solution of dP/dt = kP with P(0) = P₀:', options: ['P = P₀ + kt', 'P = P₀eᵏᵗ', 'P = P₀e⁻ᵏᵗ', 'P = P₀/(1+kt)'], correct: 1, explanation: 'Separating and integrating: P = P₀eᵏᵗ.' },
-    { id: 'a5', question: 'In a simple LR circuit, the DE for current i(t) is:', options: ['L di/dt + Ri = E', 'L di/dt - Ri = E', 'R di/dt + Li = E', 'L d²i/dt² = E'], correct: 0, explanation: 'Kirchhoff: L di/dt + Ri = E.' },
-    { id: 'a6', question: 'Terminal velocity in m dv/dt = mg - kv is:', options: ['mg', 'k/mg', 'mg/k', 'mk/g'], correct: 2, explanation: 'At terminal velocity dv/dt = 0 → v_terminal = mg/k.' },
-    { id: 'a7', question: 'Radioactive decay follows:', options: ['dN/dt = kN (k>0)', 'dN/dt = -kN (k>0)', 'dN/dt = k/N', 'd²N/dt² = -kN'], correct: 1, explanation: 'Decay: dN/dt = -kN, k > 0 (negative = decreasing).' },
-    { id: 'a8', question: 'Half-life T₁/₂ of N = N₀e^(-kt) is:', options: ['k/ln2', 'ln2/k', '1/k', '2/k'], correct: 1, explanation: 'N₀/2 = N₀e^(-kT₁/₂) → T₁/₂ = ln2/k.' },
-    { id: 'a9', question: 'For a mixture tank problem, dQ/dt equals:', options: ['rate in - rate out', 'rate in + rate out', '-rate in', 'rate out'], correct: 0, explanation: 'Conservation: dQ/dt = (concentration in × flow in) - (concentration out × flow out).' },
-    { id: 'a10', question: "Long-term temperature in Newton's cooling law approaches:", options: ['0°C', 'Initial temperature', 'Surrounding temperature Tₛ', 'Infinity'], correct: 2, explanation: 'As t → ∞, e^(-kt) → 0 → T → Tₛ.' },
-  ],
-  higher: [
-    { id: 'ho1', question: 'General solution of 2nd-order linear homogeneous DE with constant coefficients:', options: ['y = C₁y₁ + C₂y₂ (linearly independent solutions)', 'y = y₁ · y₂', 'y = C₁ + C₂x', 'y = y₁ + C'], correct: 0, explanation: 'By superposition, y = C₁y₁ + C₂y₂ for two linearly independent solutions.' },
-    { id: 'ho2', question: 'Characteristic equation of d²y/dx² - 5dy/dx + 6y = 0:', options: ['m² - 5m + 6 = 0', 'm² + 5m + 6 = 0', 'm² - 5m - 6 = 0', '5m² - m + 6 = 0'], correct: 0, explanation: 'Substituting y = eᵐˣ gives auxiliary equation m² - 5m + 6 = 0.' },
-    { id: 'ho3', question: 'Real distinct roots m₁ and m₂ give general solution:', options: ['y = (C₁ + C₂x)e^(m₁x)', 'y = C₁e^(m₁x) + C₂e^(m₂x)', 'y = eˣ(C₁cos m₁x + C₂sin m₂x)', 'y = C₁cos m₁x + C₂sin m₂x'], correct: 1, explanation: 'Distinct real roots: y = C₁e^(m₁x) + C₂e^(m₂x).' },
-    { id: 'ho4', question: 'Repeated root m gives general solution:', options: ['y = C₁e^(mx)', 'y = (C₁ + C₂x)e^(mx)', 'y = C₁e^(mx) + C₂e^(-mx)', 'y = e^(mx)(C₁cos x + C₂sin x)'], correct: 1, explanation: 'Repeated root m: y = (C₁ + C₂x)e^(mx).' },
-    { id: 'ho5', question: 'Complex roots α ± βi give general solution:', options: ['y = C₁e^(αx) + C₂e^(βx)', 'y = e^(αx)(C₁cos βx + C₂sin βx)', 'y = C₁cos αx + C₂sin βx', 'y = e^(βx)(C₁cos αx + C₂sin αx)'], correct: 1, explanation: 'Complex roots α ± βi: y = e^(αx)(C₁cos βx + C₂sin βx).' },
-    { id: 'ho6', question: 'Wronskian W(y₁, y₂) ≠ 0 means:', options: ['y₁ and y₂ are linearly dependent', 'y₁ and y₂ are linearly independent', 'The DE has no solution', 'y₁ = y₂'], correct: 1, explanation: 'W ≠ 0 guarantees linear independence — y₁, y₂ form a fundamental set.' },
-    { id: 'ho7', question: 'Method of undetermined coefficients applies when right side is:', options: ['Any function', 'Polynomials, exponentials, sin/cos, or their products', 'Only eˣ', 'Only polynomials'], correct: 1, explanation: 'Works for eˣ, sin x, cos x, xⁿ, and products — functions whose derivatives stay in the same family.' },
-    { id: 'ho8', question: 'General solution of a non-homogeneous DE is:', options: ['y = yₚ only', 'y = yₕ + yₚ', 'y = yₕ - yₚ', 'y = yₚ/yₕ'], correct: 1, explanation: 'General = complementary (yₕ) + particular integral (yₚ).' },
-    { id: 'ho9', question: 'Roots of m² + 4 = 0 are:', options: ['m = ±2', 'm = ±2i', 'm = 2, -2', 'm = 4, -4'], correct: 1, explanation: 'm² = -4 → m = ±2i. Solution: y = C₁cos 2x + C₂sin 2x.' },
-    { id: 'ho10', question: 'General solution of d³y/dx³ - y = 0 has how many arbitrary constants?', options: ['1', '2', '3', '0'], correct: 2, explanation: '3rd-order DE → 3 arbitrary constants → 3 linearly independent solutions.' },
+
+  // ──────────────────────────────────────────────
+  // CH 8 — EXACT
+  // ──────────────────────────────────────────────
+  'exact-de': [
+    { id: 'e1',  difficulty: 'easy',   question: '$M\\,dx + N\\,dy = 0$ is exact if:', options: ['$\\frac{\\partial M}{\\partial x} = \\frac{\\partial N}{\\partial y}$', '$\\frac{\\partial M}{\\partial y} = \\frac{\\partial N}{\\partial x}$', '$M = N$', '$\\frac{\\partial^2 M}{\\partial x^2} = \\frac{\\partial^2 N}{\\partial y^2}$'], correct: 1, explanation: 'Exactness condition: $\\frac{\\partial M}{\\partial y} = \\frac{\\partial N}{\\partial x}$.' },
+    { id: 'e4',  difficulty: 'easy',   question: 'Is $(2xy)\\,dx + (x^2 - 1)\\,dy = 0$ exact?', options: ['Yes, $\\frac{\\partial M}{\\partial y} = \\frac{\\partial N}{\\partial x} = 2x$', 'No', 'Yes, because $M + N = x^2 + 2xy - 1$', 'Cannot be determined'], correct: 0, explanation: '$\\frac{\\partial M}{\\partial y} = 2x$ and $\\frac{\\partial N}{\\partial x} = 2x$ → equal → exact.' },
+    { id: 'e8',  difficulty: 'easy',   question: 'After finding $F(x,y)$, the solution is written as:', options: ['$F(x,y) = 0$', '$F(x,y) = C$', '$dF = 0$', '$F(x,y) + C = 0$'], correct: 1, explanation: 'General solution: $F(x,y) = C$.' },
+    { id: 'e3',  difficulty: 'easy',   question: 'When integrating M w.r.t. x, the "constant" is:', options: ['A number', 'A function of y only, $\\phi(y)$', 'A function of x only', 'Zero'], correct: 1, explanation: 'Integration constant can depend on y: it is $\\phi(y)$, determined from $\\frac{\\partial F}{\\partial y} = N$.' },
+    { id: 'e2',  difficulty: 'medium', question: 'If $M\\,dx + N\\,dy = 0$ is exact, $F(x,y)$ satisfies:', options: ['$F_x = N$ and $F_y = M$', '$F_x = M$ and $F_y = N$', '$F = \\int M\\,dx = \\int N\\,dy$', '$F_x = F_y$'], correct: 1, explanation: '$dF = M\\,dx + N\\,dy$ means $\\frac{\\partial F}{\\partial x} = M$ and $\\frac{\\partial F}{\\partial y} = N$.' },
+    { id: 'e5',  difficulty: 'medium', question: 'Solution of $(2x+y)\\,dx + (x-2y)\\,dy = 0$:', options: ['$x^2+xy-y^2 = C$', '$x^2+xy+y^2 = C$', '$x^2-xy-y^2 = C$', '$2x+xy = C$'], correct: 0, explanation: '$F = x^2+xy+\\phi(y)$. $F_y = x+\\phi\'(y) = x-2y$ → $\\phi\' = -2y$ → $\\phi = -y^2$. So $x^2+xy-y^2 = C$.' },
+    { id: 'e7',  difficulty: 'medium', question: 'Is $(y^2 + 2xy)\\,dx + (2xy + x^2)\\,dy = 0$ exact?', options: ['Yes, $M_y = N_x = 2y+2x$', 'No', 'Yes, terms cancel', 'It is separable'], correct: 0, explanation: '$M_y = 2y+2x$, $N_x = 2y+2x$ → equal → exact.' },
+    { id: 'e9',  difficulty: 'medium', question: 'Shortcut for solution of exact DE:', options: ['$\\int M\\,dx + \\int(\\text{N terms free of x})\\,dy = C$', '$\\int M\\,dx \\cdot \\int N\\,dy = C$', '$\\int(M+N)\\,dx = C$', '$\\int M/N\\,dx = C$'], correct: 0, explanation: '$F = \\int M\\,dx$ (y constant) + $\\int$(N terms with no x) $dy = C$.' },
+    { id: 'e6',  difficulty: 'hard',   question: 'An I.F. $\\mu(x)$ for a non-exact DE exists when:', options: ['$(M_y - N_x)/N$ is a function of x only', '$(M_y - N_x)/M$ is a function of y only', 'Both', 'Neither'], correct: 0, explanation: 'If $(M_y - N_x)/N = f(x)$ only, then I.F. $= e^{\\int f\\,dx}$ makes the equation exact.' },
+    { id: 'e10', difficulty: 'hard',   question: "Exactness condition $M_y = N_x$ follows from:", options: ['Mean Value Theorem', "Clairaut's theorem on mixed partials", "Green's theorem", "Euler's theorem"], correct: 1, explanation: "If $F_x = M$ and $F_y = N$, Clairaut's theorem gives $F_{yx} = F_{xy}$ → $M_y = N_x$." },
   ],
 }
