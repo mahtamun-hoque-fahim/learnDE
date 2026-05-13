@@ -77,7 +77,7 @@ export default async function HomePage() {
         </div>
 
         <div className="hero-stats">
-          {[['08','Chapters'],['42+','Quiz problems'],['3h','Avg. completion'],['1','Certificate']].map(([n,l]) => (
+          {[['08','Chapters'],['42+','Quiz problems'],['3h','Avg. completion'],['120+','Users']].map(([n,l]) => (
             <div key={l} className="hero-stat">
               <div className="hero-stat-n">{n}</div>
               <div className="hero-stat-l">{l}</div>
@@ -178,7 +178,7 @@ export default async function HomePage() {
         .hero-cta { display:flex;gap:14px;justify-content:center;flex-wrap:wrap }
         .hero-stats { position:relative;z-index:2;margin-top:80px;display:flex;gap:52px;justify-content:center;flex-wrap:wrap }
         .hero-stat { text-align:center }
-        .hero-stat-n { font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--mint) }
+        .hero-stat-n { font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--text) }
         .hero-stat-l { font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-top:6px }
 
         .strip { border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0;background:rgba(255,255,255,.015) }
