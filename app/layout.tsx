@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import { AuthProvider } from './providers'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${jakarta.variable} ${jetbrains.variable} bg-[#070807] text-[#F3F6F4] antialiased`}
         style={{ fontFamily: 'var(--font-jakarta), Helvetica, system-ui, sans-serif', fontSize: '15px', lineHeight: '1.5', letterSpacing: '-0.005em' }}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
