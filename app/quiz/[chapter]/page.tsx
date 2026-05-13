@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { CHAPTERS } from '@/lib/chapters'
 import { QUIZ_QUESTIONS } from '@/lib/quiz-data'
+import { LogoMark } from '@/app/components/Logo'
 
 declare global {
   interface Window {
@@ -186,6 +187,7 @@ export default function QuizPage() {
             ← Back to chapter
           </Link>
           <span style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.14em' }}>Quiz</span>
+          <LogoMark size={30} />
         </div>
       </nav>
 

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LogoMark } from '@/app/components/Logo'
 import { getSession } from '@/lib/auth'
 import { CHAPTERS } from '@/lib/chapters'
 import { getDb } from '@/lib/db'
@@ -31,16 +32,14 @@ export default async function LearnPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#080808]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
-          <Link href="/" className="font-syne font-semibold text-base">
-            Learn<span className="text-[#00e676]">D.E.</span>
-          </Link>
+          <LogoMark size={30} />
           <div className="flex items-center gap-3">
             {session ? (
               <Link href="/dashboard" className="text-sm text-white/60 hover:text-white transition-colors">
                 {session.name.split(' ')[0]}
               </Link>
             ) : (
-              <Link href="/login" className="text-sm text-[#00e676]">Sign in to track progress</Link>
+              <Link href="/login" className="text-sm text-[#3DF49A]">Sign in to track progress</Link>
             )}
           </div>
         </div>
@@ -58,7 +57,7 @@ export default async function LearnPage() {
                 <span>{overallPct}%</span>
               </div>
               <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-[#00e676] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
+                <div className="h-full bg-[#3DF49A] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
               </div>
             </div>
           )}
@@ -74,7 +73,7 @@ export default async function LearnPage() {
               <div key={ch.slug} className="rounded-xl border border-white/8 bg-white/4 overflow-hidden">
                 <div className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-syne font-bold flex-shrink-0 ${done ? 'bg-[#00e676] text-black' : 'bg-white/5 text-white/40'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-syne font-bold flex-shrink-0 ${done ? 'bg-[#3DF49A] text-black' : 'bg-white/5 text-white/40'}`}>
                       {done ? '✓' : ch.order}
                     </div>
                     <div className="flex-1">
@@ -86,11 +85,11 @@ export default async function LearnPage() {
 
                   <div className="flex gap-2 mt-3 ml-11">
                     <Link href={`/learn/${ch.slug}`}
-                      className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${read ? 'bg-white/5 text-white/50 hover:bg-white/8' : 'bg-[#00e676] text-black hover:opacity-90'}`}>
+                      className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${read ? 'bg-white/5 text-white/50 hover:bg-white/8' : 'bg-[#3DF49A] text-black hover:opacity-90'}`}>
                       {read ? '✓ Read again' : 'Read chapter'}
                     </Link>
                     <Link href={`/quiz/${ch.slug}`}
-                      className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-colors ${passed ? 'border-white/10 text-white/40' : 'border-[#00e676]/30 text-[#00e676] hover:bg-[#00e676]/5'}`}>
+                      className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-colors ${passed ? 'border-white/10 text-white/40' : 'border-[#3DF49A]/30 text-[#3DF49A] hover:bg-[#3DF49A]/5'}`}>
                       {passed ? '✓ Quiz passed' : 'Take quiz'}
                     </Link>
                   </div>
@@ -101,11 +100,11 @@ export default async function LearnPage() {
         </div>
 
         {session && overallPct === 100 && (
-          <div className="mt-6 p-5 rounded-xl border border-[#00e676]/30 bg-[#00e676]/5 text-center">
+          <div className="mt-6 p-5 rounded-xl border border-[#3DF49A]/30 bg-[#3DF49A]/5 text-center">
             <div className="text-2xl mb-2">🎉</div>
-            <p className="font-syne font-semibold text-[#00e676] mb-1">All chapters complete!</p>
+            <p className="font-syne font-semibold text-[#3DF49A] mb-1">All chapters complete!</p>
             <p className="text-sm text-white/50 mb-4">You&apos;re ready for your certificate.</p>
-            <Link href="/certificate" className="inline-block px-6 py-2.5 bg-[#00e676] text-black font-semibold text-sm rounded-full">
+            <Link href="/certificate" className="inline-block px-6 py-2.5 bg-[#3DF49A] text-black font-semibold text-sm rounded-full">
               Get Certificate →
             </Link>
           </div>

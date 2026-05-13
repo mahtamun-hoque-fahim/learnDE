@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { LogoMark } from '@/app/components/Logo'
 import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
@@ -83,13 +84,7 @@ export default function RegisterPage() {
       {/* Right form pane */}
       <div style={{ padding: '60px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit', marginBottom: 40 }}>
-            <div style={{ width: 32, height: 32, border: '1.5px solid var(--text)', borderRadius: 8, display: 'grid', placeItems: 'center', position: 'relative', fontFamily: 'var(--font-mono),monospace', fontSize: 9, flexShrink: 0 }}>
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 1 }}><i style={{ fontStyle: 'normal', lineHeight: 1 }}>dy</i><i style={{ fontStyle: 'normal', lineHeight: 1, borderTop: '1px solid var(--text)', paddingTop: 1, marginTop: 1 }}>dx</i></span>
-              <span style={{ position: 'absolute', color: 'var(--mint)', fontSize: 14, right: 2, top: -2 }}>·</span>
-            </div>
-            <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>dy/dx</span>
-          </Link>
+          <LogoMark size={34} />
 
           <h2 style={{ fontSize: 48, fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
             Create <em style={{ fontStyle: 'normal', color: 'var(--mint)' }}>account</em>

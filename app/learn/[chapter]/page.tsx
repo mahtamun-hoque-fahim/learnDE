@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { LogoMark } from '@/app/components/Logo'
 import { useParams, useRouter } from 'next/navigation'
 import { CHAPTERS, Chapter } from '@/lib/chapters'
 
@@ -189,6 +190,7 @@ export default function ChapterPage() {
           <Link href="/learn" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono),monospace', textTransform: 'uppercase', letterSpacing: '.14em' }}>
             ← All chapters
           </Link>
+          <LogoMark size={32} />
           <div style={{ fontFamily: 'var(--font-mono),monospace', fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.14em' }}>
             <span style={{ color: 'var(--mint)' }}>CH {String(chapter.order).padStart(2,'0')}</span> / {chapter.title.split(' ').slice(0,3).join(' ')}...
           </div>

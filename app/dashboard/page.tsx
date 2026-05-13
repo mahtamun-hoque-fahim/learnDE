@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { LogoMark } from '@/app/components/Logo'
 import { getSession } from '@/lib/auth'
 import { getDb } from '@/lib/db'
 import { progress, quizAttempts, certSubmissions, certificates } from '@/lib/db/schema'
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
   const statusStyle: Record<string, { bg: string; text: string; border: string; icon: string; label: string }> = {
     pending:      { bg: 'bg-amber-500/5',   text: 'text-amber-400',   border: 'border-amber-500/20',   icon: '⏳', label: 'Pending Review' },
     under_review: { bg: 'bg-blue-500/5',    text: 'text-blue-400',    border: 'border-blue-500/20',    icon: '🔍', label: 'Under Review' },
-    approved:     { bg: 'bg-[#00e676]/5',   text: 'text-[#00e676]',  border: 'border-[#00e676]/20',   icon: '🎓', label: 'Certificate Ready!' },
+    approved:     { bg: 'bg-[#3DF49A]/5',   text: 'text-[#3DF49A]',  border: 'border-[#3DF49A]/20',   icon: '🎓', label: 'Certificate Ready!' },
     rejected:     { bg: 'bg-red-500/5',     text: 'text-red-400',     border: 'border-red-500/20',     icon: '✗',  label: 'Not Approved — Resubmit' },
   }
 
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen">
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#080808]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
-          <Link href="/" className="font-syne font-semibold text-base">Learn<span className="text-[#00e676]">D.E.</span></Link>
+          <LogoMark size={30} />
           <Link href="/api/auth/logout" className="text-sm text-white/40 hover:text-white/70">Sign out</Link>
         </div>
       </nav>
@@ -62,10 +63,10 @@ export default async function DashboardPage() {
         <div className="rounded-xl border border-white/8 bg-white/4 p-5 mb-6">
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm font-medium text-white">Overall Progress</span>
-            <span className="text-sm font-syne text-[#00e676]">{overallPct}%</span>
+            <span className="text-sm font-syne text-[#3DF49A]">{overallPct}%</span>
           </div>
           <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-[#00e676] rounded-full transition-all duration-700" style={{ width: `${overallPct}%` }} />
+            <div className="h-full bg-[#3DF49A] rounded-full transition-all duration-700" style={{ width: `${overallPct}%` }} />
           </div>
           <div className="flex gap-6 mt-4">
             <div><div className="text-lg font-syne font-bold text-white">{totalRead}/{totalChapters}</div><div className="text-xs text-white/40">Chapters read</div></div>
@@ -78,13 +79,13 @@ export default async function DashboardPage() {
         {certificate ? (
           /* Approved: show both certificate cards */
           <div className="mb-6 space-y-3">
-            <Link href="/certificate" className="flex items-center gap-4 p-5 rounded-xl border border-[#00e676]/30 bg-[#00e676]/5 hover:bg-[#00e676]/8 transition-colors">
+            <Link href="/certificate" className="flex items-center gap-4 p-5 rounded-xl border border-[#3DF49A]/30 bg-[#3DF49A]/5 hover:bg-[#3DF49A]/8 transition-colors">
               <div className="text-3xl">📜</div>
               <div className="flex-1">
-                <div className="font-syne font-semibold text-[#00e676]">Certificate of Completion</div>
+                <div className="font-syne font-semibold text-[#3DF49A]">Certificate of Completion</div>
                 <div className="text-xs text-white/40 mt-0.5">View your verified completion certificate</div>
               </div>
-              <svg className="w-5 h-5 text-[#00e676]/60 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+              <svg className="w-5 h-5 text-[#3DF49A]/60 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
             </Link>
             {certificate.quoteText && (
               <Link href="/certificate" className="flex items-center gap-4 p-5 rounded-xl border border-white/10 bg-white/3 hover:bg-white/5 transition-colors">
@@ -119,21 +120,21 @@ export default async function DashboardPage() {
           </div>
         ) : allDone ? (
           /* Course done but not submitted */
-          <Link href="/profile" className="flex items-center gap-4 p-5 rounded-xl border border-[#00e676]/30 bg-[#00e676]/5 mb-6 hover:bg-[#00e676]/8 transition-colors">
+          <Link href="/profile" className="flex items-center gap-4 p-5 rounded-xl border border-[#3DF49A]/30 bg-[#3DF49A]/5 mb-6 hover:bg-[#3DF49A]/8 transition-colors">
             <div className="text-3xl">🎓</div>
             <div>
-              <div className="font-syne font-semibold text-[#00e676]">Course Complete!</div>
+              <div className="font-syne font-semibold text-[#3DF49A]">Course Complete!</div>
               <div className="text-sm text-white/50">Apply for your certificate now</div>
             </div>
-            <svg className="w-5 h-5 text-[#00e676] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+            <svg className="w-5 h-5 text-[#3DF49A] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
           </Link>
         ) : nextChapter ? (
           <div className="rounded-xl border border-white/8 bg-white/4 p-5 mb-6">
             <div className="text-xs text-white/30 mb-1">Continue where you left off</div>
             <div className="font-medium text-white mb-3">{nextChapter.title}</div>
             <div className="flex gap-2">
-              {!completedChapters.includes(nextChapter.slug) && <Link href={`/learn/${nextChapter.slug}`} className="text-xs px-3 py-1.5 bg-[#00e676] text-black font-semibold rounded-lg">Read chapter →</Link>}
-              {completedChapters.includes(nextChapter.slug) && !passedQuizzes.includes(nextChapter.slug) && <Link href={`/quiz/${nextChapter.slug}`} className="text-xs px-3 py-1.5 bg-[#00e676] text-black font-semibold rounded-lg">Take quiz →</Link>}
+              {!completedChapters.includes(nextChapter.slug) && <Link href={`/learn/${nextChapter.slug}`} className="text-xs px-3 py-1.5 bg-[#3DF49A] text-black font-semibold rounded-lg">Read chapter →</Link>}
+              {completedChapters.includes(nextChapter.slug) && !passedQuizzes.includes(nextChapter.slug) && <Link href={`/quiz/${nextChapter.slug}`} className="text-xs px-3 py-1.5 bg-[#3DF49A] text-black font-semibold rounded-lg">Take quiz →</Link>}
             </div>
           </div>
         ) : null}
@@ -146,12 +147,12 @@ export default async function DashboardPage() {
             const passed = passedQuizzes.includes(ch.slug)
             return (
               <div key={ch.slug} className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/2">
-                <div className={`w-6 h-6 rounded flex items-center justify-center text-xs flex-shrink-0 ${read && passed ? 'bg-[#00e676] text-black' : 'bg-white/5 text-white/30'}`}>{read && passed ? '✓' : ch.order}</div>
+                <div className={`w-6 h-6 rounded flex items-center justify-center text-xs flex-shrink-0 ${read && passed ? 'bg-[#3DF49A] text-black' : 'bg-white/5 text-white/30'}`}>{read && passed ? '✓' : ch.order}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-white truncate">{ch.title}</div>
                   <div className="flex gap-3 mt-0.5">
-                    <span className={`text-[10px] ${read ? 'text-[#00e676]' : 'text-white/20'}`}>{read ? '✓ Read' : '○ Not read'}</span>
-                    <span className={`text-[10px] ${passed ? 'text-[#00e676]' : 'text-white/20'}`}>{passed ? '✓ Quiz passed' : '○ Quiz pending'}</span>
+                    <span className={`text-[10px] ${read ? 'text-[#3DF49A]' : 'text-white/20'}`}>{read ? '✓ Read' : '○ Not read'}</span>
+                    <span className={`text-[10px] ${passed ? 'text-[#3DF49A]' : 'text-white/20'}`}>{passed ? '✓ Quiz passed' : '○ Quiz pending'}</span>
                   </div>
                 </div>
                 <Link href={`/learn/${ch.slug}`} className="text-xs text-white/20 hover:text-white/50">→</Link>

@@ -1,24 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { LogoMark } from '@/app/components/Logo'
 
 type Sub = { status: string; displayName: string; university: string; department: string; batch?: string; gender: string; submittedAt: string }
 type Cert = { certificateId: string; issuedAt: string; quoteText?: string; quoteAuthor?: string; profileSnapshot?: Record<string, string> }
 
-function BrandMark() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 32, height: 32, border: '1.5px solid var(--text)', borderRadius: 8, display: 'grid', placeItems: 'center', position: 'relative', fontFamily: 'var(--font-mono),monospace', fontSize: 9, flexShrink: 0 }}>
-        <span style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <i style={{ fontStyle: 'normal', lineHeight: 1 }}>dy</i>
-          <i style={{ fontStyle: 'normal', lineHeight: 1, borderTop: '1px solid var(--text)', paddingTop: 1, marginTop: 1 }}>dx</i>
-        </span>
-        <span style={{ position: 'absolute', color: 'var(--mint)', fontSize: 14, right: 2, top: -2 }}>·</span>
-      </div>
-      <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em' }}>dy/dx</span>
-    </div>
-  )
-}
 
 export default function CertificatePage() {
   const [sub, setSub] = useState<Sub | null>(null)
@@ -46,7 +33,7 @@ export default function CertificatePage() {
           Dashboard
         </Link>
         <div style={{ marginLeft: 'auto' }}>
-          <BrandMark />
+          <LogoMark size={30} />
         </div>
       </div>
     </nav>
@@ -122,7 +109,7 @@ export default function CertificatePage() {
             <div style={{ position: 'relative' }}>
               {/* Top row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 50 }}>
-                <BrandMark />
+                <LogoMark size={30} />
                 <div style={{ fontFamily: 'var(--font-mono),monospace', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.16em' }}>No. {certId}</div>
               </div>
 

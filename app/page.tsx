@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getSession } from '@/lib/auth'
 import { CHAPTERS } from '@/lib/chapters'
 import Globe from './components/Globe'
+import { LogoFull, LogoMark } from './components/Logo'
 
 export default async function HomePage() {
   const session = await getSession()
@@ -21,13 +22,8 @@ export default async function HomePage() {
       {/* ===== NAV ===== */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 80, backdropFilter: 'saturate(1.2) blur(14px)', background: 'rgba(7,8,7,.65)', borderBottom: '1px solid var(--line)' }}>
         <div className="nav-inner">
-          <Link href="/" className="brand-link">
-            <div className="brand-mark">
-              <span className="brand-mark-inner"><i>dy</i><i>dx</i></span>
-              <span className="brand-dot">·</span>
-            </div>
-            <span className="brand-name">dy/dx</span>
-          </Link>
+          {/* Landing page: full logo (mark + divider + Learn) */}
+          <LogoFull size={40} />
 
           {/* Right side only — no center nav links */}
           <div className="nav-right">
@@ -140,7 +136,10 @@ export default async function HomePage() {
       {/* ===== FOOTER ===== */}
       <footer className="foot">
         <div className="foot-inner">
-          <span>© 2026 dy/dx · Built for CSE 2nd Semester</span>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <LogoMark size={24} />
+            <span>© 2026 dy/dx Learn · Built for CSE 2nd Semester</span>
+          </div>
           <div className="foot-links">
             {['About','Curriculum','Reference'].map(l => <Link key={l} href="/">{l}</Link>)}
           </div>
