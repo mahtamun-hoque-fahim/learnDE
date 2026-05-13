@@ -182,7 +182,7 @@ export default function ChapterPage() {
 
   if (!chapter) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
-      <p style={{ color: 'var(--muted)' }}>Chapter not found · <Link href="/learn" style={{ color: 'var(--mint)', textDecoration: 'none' }}>← Back</Link></p>
+      <p style={{ color: 'var(--muted)' }}>Chapter not found · <Link href="/curriculum" style={{ color: 'var(--mint)', textDecoration: 'none' }}>← Back</Link></p>
     </div>
   )
 
@@ -202,7 +202,7 @@ export default function ChapterPage() {
       {/* Nav */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 80, backdropFilter: 'saturate(1.2) blur(14px)', background: 'rgba(7,8,7,.65)', borderBottom: '1px solid var(--line)' }}>
         <div style={{ maxWidth: 1340, margin: '0 auto', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <Link href="/learn" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono),monospace', textTransform: 'uppercase', letterSpacing: '.14em' }}>
+          <Link href="/curriculum" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono),monospace', textTransform: 'uppercase', letterSpacing: '.14em' }}>
             ← All chapters
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -65,7 +65,7 @@ export default async function HomePage() {
             <span className="hero-star">*</span>Learn for free. Sign up to track your progress.
           </p>
           <div className="hero-cta">
-            <Link href="/learn" className="btn-outline-lg">
+            <Link href="/faq" className="btn-outline-lg">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.7.5-1.5 1-1.5 2"/><circle cx="12" cy="16.5" r=".5" fill="currentColor"/></svg>
               FAQ
             </Link>
@@ -113,8 +113,11 @@ export default async function HomePage() {
             <Link key={ch.slug} href={`/learn/${ch.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
               <div className="chap">
                 <div className="chap-num">CH {ch.n}</div>
-                <div className="chap-t">{ch.t}<span className="chap-d">{ch.d}</span></div>
-                <div className="chap-ref">{ch.ref || '—'}</div>
+                <div className="chap-body">
+                  <div className="chap-t">{ch.t}</div>
+                  <div className="chap-d">{ch.d}</div>
+                </div>
+                {ch.ref && <div className="chap-ref">{ch.ref}</div>}
                 <div className="chap-time">{ch.time}</div>
                 <div className="chap-arr">→</div>
               </div>
@@ -128,7 +131,7 @@ export default async function HomePage() {
         <h3>Ready to start <em>chapter one?</em></h3>
         <p>No credit card. No email required to read. Sign up only when you want to save your progress.</p>
         <div className="closer-cta">
-          <Link href="/learn" className="btn-primary-lg">Start Learning →</Link>
+          <Link href="/curriculum" className="btn-primary-lg">Start Learning →</Link>
           <Link href="/register" className="btn-outline-lg">Create account</Link>
         </div>
       </div>
@@ -190,15 +193,16 @@ export default async function HomePage() {
         .sec-note { max-width:340px;color:var(--muted);margin:0 }
         .sec-tag { display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--mint);margin-bottom:16px }
 
-        .chapter-list { display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden }
-        .chap { display:grid;grid-template-columns:72px 1fr 96px 56px 44px;align-items:center;gap:16px;padding:22px 24px;background:var(--bg);transition:.2s }
-        .chap:hover { background:#0F1311 }
+        .chapter-list { display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden }
+        .chap { display:grid;grid-template-columns:80px 1fr auto auto 44px;align-items:center;gap:20px;padding:26px 28px;background:var(--bg);transition:.2s;cursor:pointer }
+        .chap:hover { background:#0D120F }
         .chap:hover .chap-arr { background:var(--mint);color:#06160E;border-color:var(--mint) }
-        .chap-num { font-family:var(--font-mono),monospace;font-size:13px;color:var(--mint);letter-spacing:.04em;white-space:nowrap }
-        .chap-t { font-size:18px;font-weight:600;letter-spacing:-0.015em;color:var(--text);min-width:0 }
-        .chap-d { display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:3px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
-        .chap-ref { font-size:11px;color:var(--mint);font-family:var(--font-mono),monospace;background:var(--mint-soft);border:1px solid rgba(61,244,154,.2);padding:4px 8px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
-        .chap-time { font-size:12px;color:var(--muted);font-family:var(--font-mono),monospace;text-align:right;white-space:nowrap }
+        .chap-num { font-family:var(--font-mono),monospace;font-size:12px;color:var(--mint);letter-spacing:.08em;font-weight:600;white-space:nowrap }
+        .chap-body { min-width:0 }
+        .chap-t { font-size:17px;font-weight:700;letter-spacing:-0.015em;color:var(--text);margin-bottom:5px }
+        .chap-d { font-weight:400;color:var(--muted);font-size:13px;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+        .chap-ref { font-size:11px;color:var(--mint);font-family:var(--font-mono),monospace;background:var(--mint-soft);border:1px solid rgba(61,244,154,.2);padding:4px 10px;border-radius:6px;white-space:nowrap }
+        .chap-time { font-size:12px;color:var(--dim);font-family:var(--font-mono),monospace;white-space:nowrap;text-align:right }
         .chap-arr { width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--muted);transition:.2s;flex-shrink:0;justify-self:end }
 
         .closer { max-width:1280px;margin:0 auto;padding:80px 32px 120px;text-align:center }
@@ -216,6 +220,7 @@ export default async function HomePage() {
         @media(max-width:768px){
           .chap { grid-template-columns:auto 1fr auto !important }
           .chap-ref,.chap-time { display:none !important }
+          .chap-body .chap-d { display:none }
           .hero-h1 { font-size:clamp(38px,11vw,72px) }
           .hero-stats { gap:28px }
           .strip-inner { flex-direction:column;align-items:flex-start;gap:8px }

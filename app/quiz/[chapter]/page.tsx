@@ -176,7 +176,7 @@ export default function QuizPage() {
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', zIndex:1 }}>
       <div style={{ textAlign:'center' }}>
         <p style={{ color:'var(--muted)', marginBottom:16 }}>No quiz available for this chapter yet</p>
-        <Link href="/learn" style={{ color:'var(--mint)', textDecoration:'none' }}>← Back to course</Link>
+        <Link href="/curriculum" style={{ color:'var(--mint)', textDecoration:'none' }}>← Back to course</Link>
       </div>
     </div>
   )
@@ -354,7 +354,7 @@ export default function QuizPage() {
 
         <div style={{ marginTop:32, display:'flex', justifyContent:'space-between', fontSize:13, color:'var(--muted)' }}>
           <Link href={`/learn/${slug}`} style={{ color:'var(--muted)', textDecoration:'none' }}>← Review chapter</Link>
-          <Link href="/learn" style={{ color:'var(--muted)', textDecoration:'none' }}>All chapters →</Link>
+          <Link href="/curriculum" style={{ color:'var(--muted)', textDecoration:'none' }}>All chapters →</Link>
         </div>
       </div>
     </div>

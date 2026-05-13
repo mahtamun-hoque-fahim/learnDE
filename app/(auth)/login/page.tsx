@@ -119,7 +119,7 @@ export default function LoginPage() {
             <Link href="/register" style={{ color: 'var(--mint)', textDecoration: 'none' }}>Create an account</Link>
           </div>
           <div style={{ textAlign: 'center', marginTop: 12 }}>
-            <Link href="/learn" style={{ fontSize: 12, color: 'var(--dim)', textDecoration: 'none' }}>Continue without account →</Link>
+            <Link href="/curriculum" style={{ fontSize: 12, color: 'var(--dim)', textDecoration: 'none' }}>Continue without account →</Link>
           </div>
         </div>
       </div>
