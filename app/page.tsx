@@ -57,13 +57,6 @@ export default async function HomePage() {
 
       {/* ===== HERO ===== */}
       <div className="hero">
-        {/* Decorative line paths */}
-        <svg className="hero-paths" viewBox="0 0 1920 900" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M 580 -50 Q 600 250 350 420 T 480 880" stroke="rgba(255,255,255,.18)" strokeWidth="1.2" fill="none"/>
-          <path d="M 1280 -50 Q 1260 280 1500 480 T 1380 880" stroke="rgba(255,255,255,.18)" strokeWidth="1.2" fill="none"/>
-          <path d="M 700 -50 Q 720 200 870 320 L 870 500 L 1100 500 L 1100 880" stroke="rgba(255,255,255,.12)" strokeWidth="1" fill="none"/>
-        </svg>
-
         {/* Real animated geo-wireframe globe */}
         <Globe size={1400} />
 
@@ -175,7 +168,6 @@ export default async function HomePage() {
         .btn-outline-lg:hover { border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.06) }
 
         .hero { position:relative;min-height:calc(100vh - 75px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px 100px;text-align:center;overflow:hidden }
-        .hero-paths { position:absolute;inset:0;pointer-events:none;z-index:0;width:100%;height:100% }
         .hero-inner { position:relative;z-index:2;max-width:920px }
         .hero-h1 { font-weight:800;font-size:clamp(52px,8.5vw,108px);line-height:.98;letter-spacing:-0.035em;margin:0 0 22px }
         .hero-accent { color:var(--mint);display:block }
@@ -200,15 +192,15 @@ export default async function HomePage() {
         .sec-tag { display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--mint);margin-bottom:16px }
 
         .chapter-list { display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden }
-        .chap { display:grid;grid-template-columns:80px 1fr auto auto auto;align-items:center;gap:24px;padding:24px 28px;background:var(--bg);transition:.2s }
+        .chap { display:grid;grid-template-columns:72px 1fr 96px 56px 44px;align-items:center;gap:16px;padding:22px 24px;background:var(--bg);transition:.2s }
         .chap:hover { background:#0F1311 }
         .chap:hover .chap-arr { background:var(--mint);color:#06160E;border-color:var(--mint) }
-        .chap-num { font-family:var(--font-mono),monospace;font-size:13px;color:var(--mint);letter-spacing:.04em }
-        .chap-t { font-size:20px;font-weight:600;letter-spacing:-0.015em;color:var(--text) }
-        .chap-d { display:block;font-weight:400;color:var(--muted);font-size:13.5px;margin-top:4px;letter-spacing:0 }
-        .chap-ref { font-size:11px;color:var(--mint);font-family:var(--font-mono),monospace;background:var(--mint-soft);border:1px solid rgba(61,244,154,.2);padding:4px 8px;border-radius:6px;min-width:84px;text-align:center }
-        .chap-time { font-size:12px;color:var(--muted);font-family:var(--font-mono),monospace;min-width:64px;text-align:right }
-        .chap-arr { width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--muted);transition:.2s;flex-shrink:0 }
+        .chap-num { font-family:var(--font-mono),monospace;font-size:13px;color:var(--mint);letter-spacing:.04em;white-space:nowrap }
+        .chap-t { font-size:18px;font-weight:600;letter-spacing:-0.015em;color:var(--text);min-width:0 }
+        .chap-d { display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:3px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
+        .chap-ref { font-size:11px;color:var(--mint);font-family:var(--font-mono),monospace;background:var(--mint-soft);border:1px solid rgba(61,244,154,.2);padding:4px 8px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis }
+        .chap-time { font-size:12px;color:var(--muted);font-family:var(--font-mono),monospace;text-align:right;white-space:nowrap }
+        .chap-arr { width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--muted);transition:.2s;flex-shrink:0;justify-self:end }
 
         .closer { max-width:1280px;margin:0 auto;padding:80px 32px 120px;text-align:center }
         .closer h3 { font-size:clamp(36px,4vw,56px);font-weight:800;letter-spacing:-0.03em;margin:0 0 16px }

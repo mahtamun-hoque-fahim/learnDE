@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyGeo = any
+type Geo = any
 
 export default function Globe({ size = 1400 }: { size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -29,70 +29,52 @@ export default function Globe({ size = 1400 }: { size?: number }) {
     ]).then(([d3geo, world, topo]) => {
       if (destroyed) return
 
-      const countries: AnyGeo = topo.feature(world, world.objects.countries)
-      const borders: AnyGeo = topo.mesh(world, world.objects.countries, (a: AnyGeo, b: AnyGeo) => a !== b)
-      const land: AnyGeo = topo.feature(world, world.objects.land)
+      const countries: Geo = topo.feature(world, world.objects.countries)
+      const borders: Geo  = topo.mesh(world, world.objects.countries, (a: Geo, b: Geo) => a !== b)
+      const land: Geo     = topo.feature(world, world.objects.land)
+      void countries
 
       const projection = d3geo.geoOrthographic()
-        .scale(size * 0.43)
+        .scale(size * 0.44)
         .translate([size / 2, size / 2])
         .clipAngle(90)
 
-      const path = d3geo.geoPath(projection, ctx)
+      const path      = d3geo.geoPath(projection, ctx)
       const graticule = d3geo.geoGraticule()()
+      const sphere: Geo = { type: 'Sphere' }
 
       function draw() {
         if (destroyed) return
         ctx!.clearRect(0, 0, size, size)
+        rotation += 0.06
+        projection.rotate([rotation, -18, 0])
 
-        rotation += 0.07
-        projection.rotate([rotation, -20, 0])
+        // Sphere base
+        ctx!.beginPath(); path(sphere)
+        ctx!.fillStyle = 'rgba(5, 9, 7, 0.5)'; ctx!.fill()
 
-        const sphere: AnyGeo = { type: 'Sphere' }
+        // Graticule
+        ctx!.beginPath(); path(graticule)
+        ctx!.strokeStyle = 'rgba(150,175,160,.08)'; ctx!.lineWidth = 0.35; ctx!.stroke()
 
-        // Sphere base (dark fill)
-        ctx!.beginPath()
-        path(sphere)
-        ctx!.fillStyle = 'rgba(6, 10, 8, 0.55)'
-        ctx!.fill()
+        // Land (subtle fill)
+        ctx!.beginPath(); path(land)
+        ctx!.fillStyle = 'rgba(255,255,255,.03)'; ctx!.fill()
 
-        // Graticule lines
-        ctx!.beginPath()
-        path(graticule)
-        ctx!.strokeStyle = 'rgba(160, 180, 170, 0.09)'
-        ctx!.lineWidth = 0.4
-        ctx!.stroke()
+        // Country borders — the key detail
+        ctx!.beginPath(); path(borders)
+        ctx!.strokeStyle = 'rgba(200,225,212,.28)'; ctx!.lineWidth = 0.7; ctx!.stroke()
 
-        // Land fill (subtle)
-        ctx!.beginPath()
-        path(land)
-        ctx!.fillStyle = 'rgba(255, 255, 255, 0.025)'
-        ctx!.fill()
-
-        // Country borders
-        ctx!.beginPath()
-        path(borders)
-        ctx!.strokeStyle = 'rgba(210, 230, 218, 0.25)'
-        ctx!.lineWidth = 0.65
-        ctx!.stroke()
-
-        // Outer sphere border
-        ctx!.beginPath()
-        path(sphere)
-        ctx!.strokeStyle = 'rgba(160, 180, 170, 0.10)'
-        ctx!.lineWidth = 0.5
-        ctx!.stroke()
+        // Outer ring
+        ctx!.beginPath(); path(sphere)
+        ctx!.strokeStyle = 'rgba(140,165,152,.10)'; ctx!.lineWidth = 0.5; ctx!.stroke()
 
         animRef.current = requestAnimationFrame(draw)
       }
-
       draw()
     }).catch(console.error)
 
-    return () => {
-      destroyed = true
-      cancelAnimationFrame(animRef.current)
-    }
+    return () => { destroyed = true; cancelAnimationFrame(animRef.current) }
   }, [size])
 
   return (
@@ -101,12 +83,13 @@ export default function Globe({ size = 1400 }: { size?: number }) {
       style={{
         position: 'absolute',
         left: '50%',
-        bottom: -340,
+        /* push center of globe (size/2 px from canvas top) to ~hero bottom */
+        bottom: -(size * 0.44),
         transform: 'translateX(-50%)',
         width: size,
         height: size,
         pointerEvents: 'none',
-        opacity: 0.62,
+        opacity: 0.65,
         zIndex: 0,
       }}
     />

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { CHAPTERS } from '@/lib/chapters'
@@ -11,29 +11,104 @@ declare global {
   }
 }
 
-function MathText({ text }: { text: string }) {
+// Convert quiz text (unicode math) → LaTeX delimited strings, then render with KaTeX
+function unicodeToLatex(raw: string): string {
+  return raw
+    // fractions written as text
+    .replace(/d²y\/dx²/g, '\\dfrac{d^2y}{dx^2}')
+    .replace(/d²y\/dx/g,  '\\dfrac{d^2y}{dx}')
+    .replace(/dy\/dx/g,   '\\dfrac{dy}{dx}')
+    .replace(/dv\/dx/g,   '\\dfrac{dv}{dx}')
+    .replace(/dP\/dt/g,   '\\dfrac{dP}{dt}')
+    .replace(/dT\/dt/g,   '\\dfrac{dT}{dt}')
+    .replace(/dq\/dt/g,   '\\dfrac{dq}{dt}')
+    .replace(/d\/dx/g,    '\\dfrac{d}{dx}')
+    // superscripts / subscripts
+    .replace(/([a-zA-Z0-9\)])²/g, '$1^2')
+    .replace(/([a-zA-Z0-9\)])³/g, '$1^3')
+    .replace(/([a-zA-Z0-9\)])⁴/g, '$1^4')
+    .replace(/([a-zA-Z0-9\)])ⁿ/g, '$1^n')
+    .replace(/([a-zA-Z0-9\)])ˣ/g, '$1^x')
+    .replace(/([a-zA-Z0-9\)])⁻ˣ/g, '$1^{-x}')
+    .replace(/([a-zA-Z0-9\)])⁻¹/g, '$1^{-1}')
+    .replace(/([a-zA-Z0-9\)])⁻²/g, '$1^{-2}')
+    .replace(/([a-zA-Z0-9\)])₁/g, '$1_1')
+    .replace(/([a-zA-Z0-9\)])₂/g, '$1_2')
+    // integrals
+    .replace(/∫/g, '\\int ')
+    // trig
+    .replace(/\barctan\b/g, '\\arctan')
+    .replace(/\barcsin\b/g, '\\arcsin')
+    .replace(/\barccos\b/g, '\\arccos')
+    .replace(/\bsec²\b/g, '\\sec^2')
+    .replace(/\btan²\b/g, '\\tan^2')
+    // e^(...)
+    .replace(/e\^\(([^)]+)\)/g, 'e^{$1}')
+    // ln|...| → \ln|...|
+    .replace(/\bln\|/g, '\\ln|')
+    .replace(/\bln\b/g, '\\ln')
+    // arrows
+    .replace(/→/g, '\\to')
+}
+
+// Heuristic: does this string look like math?
+function looksMath(s: string): boolean {
+  if (s.includes('$')) return false // already processed
+  const mathyPatterns = [
+    /[=\+\-\/\^\_]/, /dy|dx|dt|ln|sin|cos|tan|sec|csc|arctan/,
+    /[²³⁴ⁿˣ₁₂∫→⁻]/, /\d+[a-zA-Z]/, /[a-zA-Z]\d/,
+    /\b[A-Z]\([a-z]\)/, /e\^/, /\^[0-9n]/,
+  ]
+  return mathyPatterns.some(p => p.test(s)) && s.length < 80
+}
+
+function processQuizText(raw: string): string {
+  // If already has $ delimiters, keep as-is
+  if (raw.includes('$')) return raw
+
+  // Try to find "math segments" in the string (parts between words that look like equations)
+  // Simple approach: if whole string looks math, wrap it; otherwise find inline math parts
+  const converted = unicodeToLatex(raw)
+
+  if (looksMath(raw)) {
+    // Whole thing is likely a math expression
+    return `$${converted}$`
+  }
+
+  // Try to wrap inline math-looking substrings (e.g. "y = Cx" in a sentence)
+  // Find sequences like "letter = expression" 
+  return converted.replace(/([a-zA-Z\s]*=\s*[^\s,\.]+(?:\s*[+\-]\s*[^\s,\.]+)*)/g, (match) => {
+    if (looksMath(match.trim())) return `$${match.trim()}$`
+    return match
+  })
+}
+
+function QuizMathText({ text }: { text: string }) {
   const ref = useRef<HTMLSpanElement>(null)
+  const processed = processQuizText(text)
+
   useEffect(() => {
-    if (!ref.current || !text) return
     const el = ref.current
+    if (!el) return
     const init = () => {
       if (!window.katex) { setTimeout(init, 60); return }
       el.querySelectorAll('[data-m]').forEach(node => {
         const disp = node.getAttribute('data-d') === '1'
         const m = node.getAttribute('data-m') || ''
-        try { window.katex.render(m, node as HTMLElement, { displayMode: disp, throwOnError: false }) } catch {}
+        try { window.katex.render(m, node as HTMLElement, { displayMode: disp, throwOnError: false }) }
+        catch { (node as HTMLElement).textContent = m }
       })
     }
     init()
-  }, [text])
+  }, [processed])
 
   const parts: React.ReactNode[] = []
-  const segs = text.split(/((?:\$\$[\s\S]+?\$\$)|(?:\$[^$]+?\$))/g)
+  const segs = processed.split(/((?:\$\$[\s\S]+?\$\$)|(?:\$[^$]+?\$))/g)
   segs.forEach((seg, i) => {
     if (seg.startsWith('$$') && seg.endsWith('$$')) {
-      parts.push(<span key={i} data-m={seg.slice(2, -2)} data-d="1" className="block" />)
+      parts.push(<span key={i} data-m={seg.slice(2,-2)} data-d="1" style={{ display: 'block', textAlign: 'center', padding: '4px 0' }} />)
     } else if (seg.startsWith('$') && seg.endsWith('$')) {
-      parts.push(<span key={i} data-m={seg.slice(1, -1)} data-d="0" className="inline" />)
+      parts.push(<span key={i} data-m={seg.slice(1,-1)} data-d="0" style={{ display: 'inline' }} />)
     } else {
       parts.push(<span key={i}>{seg}</span>)
     }
@@ -42,17 +117,10 @@ function MathText({ text }: { text: string }) {
 }
 
 type QuizResult = {
-  score: number
-  total: number
-  passed: boolean
+  score: number; total: number; passed: boolean
   results: { id: string; userAnswer: number; correct: boolean; correctAnswer: number; explanation: string }[]
 }
-
-type BonusProblem = {
-  problem: string
-  hint: string
-  solution: string
-}
+type BonusProblem = { problem: string; hint: string; solution: string }
 
 export default function QuizPage() {
   const params = useParams()
@@ -70,7 +138,7 @@ export default function QuizPage() {
 
   const allAnswered = questions.every((_, i) => answers[i] !== undefined)
 
-  const submit = async () => {
+  const submit = useCallback(async () => {
     if (!allAnswered) return
     setLoading(true)
     try {
@@ -80,15 +148,13 @@ export default function QuizPage() {
         body: JSON.stringify({ chapterSlug: slug, answers }),
       })
       const data = await res.json()
-      setResult(data)
-      setSubmitted(true)
+      setResult(data); setSubmitted(true)
     } catch {}
     setLoading(false)
-  }
+  }, [allAnswered, slug, answers])
 
-  const fetchBonusProblems = async () => {
-    setLoadingBonus(true)
-    setShowBonus(true)
+  const fetchBonus = useCallback(async () => {
+    setLoadingBonus(true); setShowBonus(true)
     try {
       const res = await fetch('/api/bonus', {
         method: 'POST',
@@ -97,63 +163,65 @@ export default function QuizPage() {
       })
       const data = await res.json()
       setBonusProblems(data.problems || [])
-    } catch {
-      setBonusProblems([])
-    }
+    } catch { setBonusProblems([]) }
     setLoadingBonus(false)
-  }
+  }, [slug, chapter?.title])
 
-  if (!chapter) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-white/40">Quiz not found</p>
-    </div>
-  )
-
+  if (!chapter) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', zIndex:1 }}><p style={{ color:'var(--muted)' }}>Quiz not found</p></div>
   if (!questions.length) return (
-    <div className="min-h-screen flex items-center justify-center px-5">
-      <div className="text-center">
-        <p className="text-white/40 mb-4">No quiz available for this chapter yet</p>
-        <Link href="/learn" className="text-[#00e676] text-sm">← Back to course</Link>
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', zIndex:1 }}>
+      <div style={{ textAlign:'center' }}>
+        <p style={{ color:'var(--muted)', marginBottom:16 }}>No quiz available for this chapter yet</p>
+        <Link href="/learn" style={{ color:'var(--mint)', textDecoration:'none' }}>← Back to course</Link>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen">
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#080808]/80 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
-          <Link href={`/learn/${slug}`} className="text-sm text-white/50 hover:text-white transition-colors flex items-center gap-1.5">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to chapter
+    <div style={{ position:'relative', zIndex:1, minHeight:'100vh' }}>
+      {/* Nav */}
+      <nav style={{ position:'sticky', top:0, zIndex:80, backdropFilter:'saturate(1.2) blur(14px)', background:'rgba(7,8,7,.65)', borderBottom:'1px solid var(--line)' }}>
+        <div style={{ maxWidth:820, margin:'0 auto', padding:'0 32px', height:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <Link href={`/learn/${slug}`} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'var(--muted)', textDecoration:'none', fontFamily:'var(--font-mono),monospace', textTransform:'uppercase', letterSpacing:'.14em' }}>
+            ← Back to chapter
           </Link>
-          <span className="font-syne text-sm text-white/40">Quiz</span>
+          <span style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.14em' }}>Quiz</span>
         </div>
       </nav>
 
-      <div className="pt-24 pb-16 px-5 max-w-3xl mx-auto">
-        <div className="mb-8">
-          <div className="text-xs text-[#00e676] mb-2">Chapter {chapter.order} Quiz</div>
-          <h1 className="font-syne font-bold text-2xl text-white">{chapter.title}</h1>
-          <p className="text-sm text-white/40 mt-1">{questions.length} questions · Pass with 60%</p>
+      <div style={{ maxWidth:820, margin:'0 auto', padding:'48px 32px 120px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom:32 }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'5px 12px', borderRadius:999, border:'1px solid var(--line-2)', background:'rgba(255,255,255,.02)', fontSize:12, color:'var(--muted)', marginBottom:14 }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--mint)', boxShadow:'0 0 8px var(--mint)', display:'inline-block' }} />
+            Chapter {chapter.order} · {chapter.title} · Quiz
+          </div>
+          <h1 style={{ fontSize:32, fontWeight:800, letterSpacing:'-0.025em', margin:'0 0 6px' }}>{chapter.title}</h1>
+          <p style={{ color:'var(--muted)', fontSize:14, margin:0 }}>{questions.length} questions · Pass with 60%</p>
         </div>
 
-        {/* Result Banner */}
+        {/* Progress bar */}
+        <div style={{ display:'flex', gap:5, marginBottom:32 }}>
+          {questions.map((_, i) => (
+            <div key={i} style={{ flex:1, height:4, borderRadius:2, background: submitted ? (result?.results[i]?.correct ? 'var(--mint)' : 'var(--rose)') : answers[i] !== undefined ? 'var(--text)' : 'var(--line)' }} />
+          ))}
+        </div>
+
+        {/* Result banner */}
         {submitted && result && (
-          <div className={`mb-6 p-4 rounded-xl border ${result.passed ? 'border-[#00e676]/30 bg-[#00e676]/5' : 'border-red-500/30 bg-red-500/5'}`}>
-            <div className="flex items-center justify-between">
+          <div style={{ marginBottom:28, padding:'18px 20px', borderRadius:14, border:`1px solid ${result.passed ? 'rgba(61,244,154,.3)' : 'rgba(242,107,107,.3)'}`, background: result.passed ? 'rgba(61,244,154,.05)' : 'rgba(242,107,107,.05)' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
               <div>
-                <div className={`font-syne font-bold text-xl ${result.passed ? 'text-[#00e676]' : 'text-red-400'}`}>
-                  {result.score}/{result.total} {result.passed ? '🎉 Passed!' : '— Try again'}
+                <div style={{ fontSize:22, fontWeight:700, color: result.passed ? 'var(--mint)' : 'var(--rose)', letterSpacing:'-0.02em' }}>
+                  {result.score}/{result.total} — {result.passed ? '🎉 Passed!' : 'Not quite'}
                 </div>
-                <div className="text-sm text-white/40 mt-0.5">
-                  {Math.round((result.score / result.total) * 100)}% · {result.passed ? 'Quiz saved to your progress' : 'Need 60% to pass'}
+                <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>
+                  {Math.round((result.score/result.total)*100)}% · {result.passed ? 'Saved to your progress' : 'Need 60% to pass'}
                 </div>
               </div>
               {result.passed && (
-                <button onClick={fetchBonusProblems} disabled={loadingBonus}
-                  className="text-xs px-3 py-1.5 bg-[#00e676] text-black font-semibold rounded-full">
+                <button onClick={fetchBonus} disabled={loadingBonus} style={{ padding:'9px 18px', borderRadius:999, background:'var(--mint)', color:'#06160E', fontSize:13, fontWeight:600, border:'none', cursor:'pointer' }}>
                   {loadingBonus ? 'Loading...' : '✦ Bonus problems'}
                 </button>
               )}
@@ -162,44 +230,59 @@ export default function QuizPage() {
         )}
 
         {/* Questions */}
-        <div className="space-y-6">
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
           {questions.map((q, qi) => {
             const userAns = answers[qi]
             const qResult = result?.results[qi]
 
             return (
-              <div key={q.id} className={`rounded-xl border p-5 ${submitted ? (qResult?.correct ? 'border-[#00e676]/20' : 'border-red-500/20') : 'border-white/8'} bg-white/4`}>
-                <div className="text-xs text-white/30 mb-2">Question {qi + 1}</div>
-                <p className="text-sm text-white mb-4 leading-relaxed">
-                  <MathText text={q.question} />
-                </p>
-                <div className="space-y-2">
+              <div key={q.id} style={{
+                borderRadius:18, border:`1px solid ${submitted ? (qResult?.correct ? 'rgba(61,244,154,.2)' : 'rgba(242,107,107,.2)') : 'var(--line-2)'}`,
+                background:'linear-gradient(180deg, #0B0F0D, #0A0C0B)',
+                padding:'28px 32px', boxShadow:'0 20px 40px -20px rgba(0,0,0,.5)',
+              }}>
+                <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:12, color:'var(--mint)', marginBottom:10, letterSpacing:'.1em' }}>
+                  QUESTION {String(qi+1).padStart(2,'0')} / {String(questions.length).padStart(2,'0')}
+                </div>
+                <div style={{ fontSize:20, fontWeight:700, lineHeight:1.3, letterSpacing:'-0.015em', marginBottom:6, color:'var(--text)' }}>
+                  <QuizMathText text={q.question} />
+                </div>
+
+                <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:20 }}>
                   {q.options.map((opt, oi) => {
                     const isSelected = userAns === oi
-                    const isCorrect = oi === q.correct
-                    let style = 'border-white/8 text-white/60'
+                    const isCorrect  = oi === q.correct
+                    let bg = 'rgba(255,255,255,.015)'
+                    let border = 'var(--line-2)'
+                    let color = '#CDD3D0'
+                    let bulletBg = '#0B0F0D'
+                    let bulletColor = 'var(--muted)'
+
                     if (submitted) {
-                      if (isCorrect) style = 'border-[#00e676]/40 bg-[#00e676]/5 text-[#00e676]'
-                      else if (isSelected && !isCorrect) style = 'border-red-500/40 bg-red-500/5 text-red-400'
+                      if (isCorrect) { bg='var(--mint-soft)'; border='var(--mint)'; color='var(--text)'; bulletBg='var(--mint)'; bulletColor='#06160E' }
+                      else if (isSelected) { bg='rgba(242,107,107,.08)'; border='var(--rose)'; color='var(--text)'; bulletBg='var(--rose)'; bulletColor='#fff' }
                     } else if (isSelected) {
-                      style = 'border-[#00e676]/40 bg-[#00e676]/5 text-white'
+                      bg='var(--mint-soft)'; border='var(--mint)'; color='var(--text)'; bulletBg='var(--mint)'; bulletColor='#06160E'
                     }
 
                     return (
-                      <button
-                        key={oi}
-                        onClick={() => !submitted && setAnswers(prev => ({ ...prev, [qi]: oi }))}
-                        disabled={submitted}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-all ${style} ${!submitted ? 'hover:border-white/20 hover:bg-white/4' : ''}`}
-                      >
-                        <MathText text={opt} />
+                      <button key={oi} onClick={() => !submitted && setAnswers(p => ({ ...p, [qi]: oi }))} disabled={submitted}
+                        style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px', borderRadius:12, border:`1px solid ${border}`, background:bg, cursor: submitted ? 'default' : 'pointer', transition:'.15s', textAlign:'left', width:'100%' }}>
+                        <div style={{ width:30, height:30, borderRadius:'50%', border:`1px solid ${border}`, display:'grid', placeItems:'center', fontFamily:'var(--font-mono),monospace', fontSize:12, color:bulletColor, flexShrink:0, background:bulletBg, transition:'.15s' }}>
+                          {String.fromCharCode(65+oi)}
+                        </div>
+                        <div style={{ fontFamily:'var(--font-mono),monospace', fontSize:14, color, flex:1 }}>
+                          <QuizMathText text={opt} />
+                        </div>
                       </button>
                     )
                   })}
                 </div>
+
                 {submitted && qResult && (
-                  <div className={`mt-3 p-3 rounded-lg text-xs ${qResult.correct ? 'bg-[#00e676]/5 text-[#00e676]/80' : 'bg-white/5 text-white/50'}`}>
-                    <span className="font-medium">Explanation: </span>{qResult.explanation}
+                  <div style={{ marginTop:16, padding:'12px 16px', borderRadius:10, background: qResult.correct ? 'rgba(61,244,154,.05)' : 'rgba(255,255,255,.04)', borderLeft:`2px solid ${qResult.correct ? 'var(--mint)' : 'var(--line-2)'}` }}>
+                    <span style={{ fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'.12em', color: qResult.correct ? 'var(--mint)' : 'var(--muted)', marginRight:8 }}>Explanation</span>
+                    <span style={{ fontSize:13, color:'var(--muted)' }}><QuizMathText text={qResult.explanation} /></span>
                   </div>
                 )}
               </div>
@@ -207,22 +290,25 @@ export default function QuizPage() {
           })}
         </div>
 
+        {/* Submit */}
         {!submitted && (
-          <div className="mt-8">
-            <button
-              onClick={submit}
-              disabled={!allAnswered || loading}
-              className="w-full py-3 rounded-xl bg-[#00e676] text-black font-semibold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
-            >
-              {loading ? 'Submitting...' : !allAnswered ? `Answer all ${questions.length} questions first` : 'Submit Quiz'}
+          <div style={{ marginTop:28 }}>
+            <button onClick={submit} disabled={!allAnswered || loading} style={{
+              width:'100%', padding:'16px', borderRadius:999, fontSize:15, fontWeight:700,
+              background: allAnswered ? 'var(--mint)' : 'rgba(255,255,255,.05)',
+              color: allAnswered ? '#06160E' : 'var(--muted)',
+              border:`1px solid ${allAnswered ? 'var(--mint)' : 'var(--line)'}`,
+              cursor: allAnswered ? 'pointer' : 'not-allowed', transition:'.18s',
+            }}>
+              {loading ? 'Submitting...' : !allAnswered ? `Answer all ${questions.length} questions first` : 'Submit Quiz →'}
             </button>
           </div>
         )}
 
         {submitted && !result?.passed && (
-          <div className="mt-6 text-center">
+          <div style={{ marginTop:24, textAlign:'center' }}>
             <button onClick={() => { setAnswers({}); setSubmitted(false); setResult(null) }}
-              className="text-sm text-[#00e676] hover:underline">
+              style={{ fontSize:14, color:'var(--mint)', background:'none', border:'none', cursor:'pointer' }}>
               ↺ Retake quiz
             </button>
           </div>
@@ -230,56 +316,40 @@ export default function QuizPage() {
 
         {/* Bonus Problems */}
         {showBonus && (
-          <div className="mt-10 border-t border-white/8 pt-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="text-[#00e676] text-lg">✦</span>
-              <h2 className="font-syne font-semibold text-lg">Bonus Problems</h2>
-              <span className="text-xs text-white/30 ml-1">AI-generated for exam prep</span>
+          <div style={{ marginTop:48, paddingTop:40, borderTop:'1px solid var(--line)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:24 }}>
+              <span style={{ color:'var(--mint)', fontSize:18 }}>✦</span>
+              <h2 style={{ fontSize:22, fontWeight:700, margin:0, letterSpacing:'-0.02em' }}>Bonus Problems</h2>
+              <span style={{ fontSize:12, color:'var(--muted)', fontFamily:'var(--font-mono),monospace' }}>AI-generated</span>
             </div>
-
             {loadingBonus ? (
-              <div className="space-y-3">
-                {[1,2,3].map(i => (
-                  <div key={i} className="h-24 rounded-xl bg-white/4 animate-pulse" />
-                ))}
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {[1,2,3].map(i => <div key={i} style={{ height:96, borderRadius:14, background:'rgba(255,255,255,.04)', animation:'pulse 2s infinite' }} />)}
               </div>
-            ) : bonusProblems.length > 0 ? (
-              <div className="space-y-4">
-                {bonusProblems.map((bp, i) => (
-                  <div key={i} className="rounded-xl border border-white/8 bg-white/4 p-4">
-                    <div className="text-xs text-[#00e676] font-medium mb-2">Problem {i + 1}</div>
-                    <p className="text-sm text-white/80 mb-3"><MathText text={bp.problem} /></p>
-                    <details className="group">
-                      <summary className="text-xs text-white/30 cursor-pointer hover:text-white/60 list-none flex justify-between">
-                        <span>Hint</span><span className="group-open:rotate-45 text-base transition-transform">+</span>
-                      </summary>
-                      <p className="text-xs text-white/50 mt-2 pl-2 border-l border-white/10"><MathText text={bp.hint} /></p>
-                    </details>
-                    <details className="group mt-2">
-                      <summary className="text-xs text-white/30 cursor-pointer hover:text-white/60 list-none flex justify-between">
-                        <span>Show solution</span><span className="group-open:rotate-45 text-base transition-transform">+</span>
-                      </summary>
-                      <div className="text-xs text-white/60 mt-2 pl-2 border-l border-[#00e676]/20 space-y-1">
-                        <MathText text={bp.solution} />
-                      </div>
-                    </details>
-                  </div>
-                ))}
+            ) : bonusProblems.map((bp, i) => (
+              <div key={i} style={{ borderRadius:14, border:'1px solid var(--line-2)', background:'rgba(255,255,255,.02)', padding:'20px', marginBottom:12 }}>
+                <div style={{ fontSize:11, color:'var(--mint)', fontWeight:600, textTransform:'uppercase', letterSpacing:'.14em', marginBottom:10, fontFamily:'var(--font-mono),monospace' }}>Problem {i+1}</div>
+                <p style={{ fontSize:15, color:'#CDD3D0', marginBottom:14 }}><QuizMathText text={bp.problem} /></p>
+                <details style={{ marginBottom:8 }}>
+                  <summary style={{ fontSize:12, color:'var(--muted)', cursor:'pointer', listStyle:'none', display:'flex', justifyContent:'space-between' }}>
+                    <span>Hint</span><span>+</span>
+                  </summary>
+                  <p style={{ fontSize:13, color:'var(--muted)', marginTop:8, paddingLeft:12, borderLeft:'2px solid var(--line-2)' }}><QuizMathText text={bp.hint} /></p>
+                </details>
+                <details>
+                  <summary style={{ fontSize:12, color:'var(--muted)', cursor:'pointer', listStyle:'none', display:'flex', justifyContent:'space-between' }}>
+                    <span>Show solution</span><span>+</span>
+                  </summary>
+                  <div style={{ fontSize:13, color:'var(--muted)', marginTop:8, paddingLeft:12, borderLeft:'2px solid rgba(61,244,154,.25)' }}><QuizMathText text={bp.solution} /></div>
+                </details>
               </div>
-            ) : (
-              <p className="text-white/30 text-sm">Could not load bonus problems. Check your connection.</p>
-            )}
+            ))}
           </div>
         )}
 
-        {/* Nav */}
-        <div className="mt-8 flex justify-between">
-          <Link href={`/learn/${slug}`} className="text-sm text-white/40 hover:text-white transition-colors">
-            ← Review chapter
-          </Link>
-          <Link href="/learn" className="text-sm text-white/40 hover:text-white transition-colors">
-            All chapters →
-          </Link>
+        <div style={{ marginTop:32, display:'flex', justifyContent:'space-between', fontSize:13, color:'var(--muted)' }}>
+          <Link href={`/learn/${slug}`} style={{ color:'var(--muted)', textDecoration:'none' }}>← Review chapter</Link>
+          <Link href="/learn" style={{ color:'var(--muted)', textDecoration:'none' }}>All chapters →</Link>
         </div>
       </div>
     </div>
