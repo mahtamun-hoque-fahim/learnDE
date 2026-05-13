@@ -32,7 +32,12 @@ export default function Globe({ size = 1400 }: { size?: number }) {
       const countries: Geo = topo.feature(world, world.objects.countries)
       const borders: Geo  = topo.mesh(world, world.objects.countries, (a: Geo, b: Geo) => a !== b)
       const land: Geo     = topo.feature(world, world.objects.land)
-      void countries
+
+      // Bangladesh — ISO 3166-1 numeric 50
+      const bangladesh: Geo = {
+        type: 'FeatureCollection',
+        features: countries.features.filter((f: Geo) => +f.id === 50),
+      }
 
       const projection = d3geo.geoOrthographic()
         .scale(size * 0.44)
@@ -60,6 +65,20 @@ export default function Globe({ size = 1400 }: { size?: number }) {
         // Land (subtle fill)
         ctx!.beginPath(); path(land)
         ctx!.fillStyle = 'rgba(255,255,255,.03)'; ctx!.fill()
+
+        // Bangladesh — glowing mint highlight
+        ctx!.beginPath(); path(bangladesh)
+        ctx!.fillStyle = 'rgba(61,244,154,.35)'; ctx!.fill()
+        // glow: draw same path several times with expanding shadow
+        ctx!.save()
+        ctx!.shadowColor = 'rgba(61,244,154,.9)'
+        ctx!.shadowBlur = 18
+        ctx!.beginPath(); path(bangladesh)
+        ctx!.fillStyle = 'rgba(61,244,154,.55)'; ctx!.fill()
+        ctx!.restore()
+        // crisp border on top
+        ctx!.beginPath(); path(bangladesh)
+        ctx!.strokeStyle = 'rgba(61,244,154,.95)'; ctx!.lineWidth = 1.2; ctx!.stroke()
 
         // Country borders — the key detail
         ctx!.beginPath(); path(borders)
