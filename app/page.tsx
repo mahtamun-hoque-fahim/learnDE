@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { CHAPTERS } from '@/lib/chapters'
 import Globe from './components/Globe'
 import { LogoFull, LogoMark } from './components/Logo'
+import HeroStats from './components/HeroStats'
 
 export default async function HomePage() {
   const session = await getSession()
@@ -76,14 +77,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="hero-stats">
-          {[['08','Chapters'],['42+','Quiz problems'],['3h','Avg. completion'],['120+','Users']].map(([n,l]) => (
-            <div key={l} className="hero-stat">
-              <div className="hero-stat-n">{n}</div>
-              <div className="hero-stat-l">{l}</div>
-            </div>
-          ))}
-        </div>
+        <HeroStats />
       </div>
 
       {/* ===== FEATURE STRIP ===== */}
@@ -177,9 +171,6 @@ export default async function HomePage() {
         .hero-star { color:var(--mint);margin-right:4px }
         .hero-cta { display:flex;gap:14px;justify-content:center;flex-wrap:wrap }
         .hero-stats { position:relative;z-index:2;margin-top:80px;display:flex;gap:52px;justify-content:center;flex-wrap:wrap }
-        .hero-stat { text-align:center }
-        .hero-stat-n { font-size:30px;font-weight:700;letter-spacing:-.02em;color:rgba(255,255,255,.55) }
-        .hero-stat-l { font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:6px }
 
         .strip { border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0;background:rgba(255,255,255,.015) }
         .strip-inner { max-width:1280px;margin:0 auto;padding:0 32px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted) }
