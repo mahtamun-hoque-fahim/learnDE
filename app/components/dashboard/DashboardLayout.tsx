@@ -1,9 +1,8 @@
 'use client'
 
-import { useAuth } from '@/lib/auth-utils'
-import { UserButton, SignOutButton } from '@clerk/nextjs'
+import { useAuth, getUserInitials, getAvatarColor } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import React from 'react'
 
 interface DashboardLayoutProps {
@@ -30,22 +29,26 @@ export function DashboardLayout({
   navItems,
   role,
 }: DashboardLayoutProps) {
-  const { user, isLoaded, isSignedIn } = useAuth()
+  const { user, isLoading, isSignedIn, name, logout } = useAuth()
   const router = useRouter()
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (!isLoading && !isSignedIn) {
       router.push('/auth/sign-in')
     }
-  }, [isLoaded, isSignedIn, router])
+  }, [isLoading, isSignedIn, router])
 
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#070807]">
         <div className="animate-spin w-8 h-8 border-2 border-[#3DF49A] border-t-transparent rounded-full" />
       </div>
     )
   }
+
+  const initials = name ? getUserInitials(name) : '??'
+  const avatarColor = getAvatarColor(role)
 
   return (
     <div className="flex min-h-screen bg-[#070807] text-[#F3F6F4]">
@@ -111,12 +114,12 @@ export function DashboardLayout({
 
         {/* User Section */}
         <div className="px-3.5 py-3 border-t border-[#1F2421] flex items-center gap-2.25">
-          <div className="w-[30px] h-[30px] rounded-full bg-[rgba(61,244,154,0.11)] border border-[rgba(61,244,154,0.22)] flex items-center justify-center text-[11px] font-bold text-[#3DF49A] flex-shrink-0">
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          <div className={`w-[30px] h-[30px] rounded-full ${avatarColor} flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[12.5px] font-semibold truncate">
-              {user?.fullName || user?.firstName || 'User'}
+              {name || 'User'}
             </div>
             <div className="text-[10.5px] text-[#8A938E]">
               {role === 'student' ? 'Student' : role === 'staff' ? 'Faculty' : 'Administrator'}
@@ -141,10 +144,52 @@ export function DashboardLayout({
               <svg className="w-[15px] h-[15px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 0 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
               </svg>
+              {/* Unread badge */}
+              <span className="absolute top-[6px] right-[6px] w-[7px] h-[7px] bg-[#F26B6B] rounded-full"></span>
             </button>
 
-            {/* User Menu */}
-            <UserButton afterSignOutUrl="/auth/sign-in" />
+            {/* User Menu Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className={`w-[34px] h-[34px] rounded-lg ${avatarColor} flex items-center justify-center text-[11px] font-bold transition-all border ${
+                  showUserMenu ? 'border-[rgba(61,244,154,0.22)]' : 'border-transparent'
+                }`}
+              >
+                {initials}
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowUserMenu(false)}
+                  />
+                  
+                  {/* Menu */}
+                  <div className="absolute right-0 top-full mt-2 w-[180px] bg-[#0E1110] border border-[#2A312D] rounded-lg shadow-lg z-50 py-1.5">
+                    <div className="px-3 py-2 border-b border-[#1F2421]">
+                      <div className="text-[11.5px] font-semibold">{name || 'User'}</div>
+                      <div className="text-[10px] text-[#8A938E]">{user?.email}</div>
+                    </div>
+                    <a
+                      href="/profile"
+                      className="block px-3 py-1.5 text-[12px] text-[#8A938E] hover:text-[#F3F6F4] hover:bg-[rgba(255,255,255,0.04)] transition-colors"
+                    >
+                      Profile Settings
+                    </a>
+                    <button
+                      onClick={logout}
+                      className="w-full text-left px-3 py-1.5 text-[12px] text-[#F26B6B] hover:bg-[rgba(242,107,107,0.08)] transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 

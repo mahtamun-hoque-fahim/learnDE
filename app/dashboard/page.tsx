@@ -16,16 +16,16 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function StudentDashboard() {
-  const { role, name, isLoaded, isSignedIn } = useAuth()
+  const { role, name, isLoading, isSignedIn } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isLoaded && (!isSignedIn || role !== 'student')) {
+    if (!isLoading && (!isSignedIn || role !== 'student')) {
       router.push('/auth/sign-in')
     }
-  }, [isLoaded, isSignedIn, role, router])
+  }, [isLoading, isSignedIn, role, router])
 
-  if (!isLoaded || role !== 'student') {
+  if (isLoading || role !== 'student') {
     return null
   }
 

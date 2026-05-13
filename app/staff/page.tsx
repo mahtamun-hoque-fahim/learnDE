@@ -17,16 +17,16 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function StaffDashboard() {
-  const { role, name, isLoaded, isSignedIn } = useAuth()
+  const { role, name, isLoading, isSignedIn } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isLoaded && (!isSignedIn || (role !== 'staff' && role !== 'admin'))) {
+    if (!isLoading && (!isSignedIn || (role !== 'staff' && role !== 'admin'))) {
       router.push('/auth/sign-in')
     }
-  }, [isLoaded, isSignedIn, role, router])
+  }, [isLoading, isSignedIn, role, router])
 
-  if (!isLoaded || (role !== 'staff' && role !== 'admin')) {
+  if (isLoading || (role !== 'staff' && role !== 'admin')) {
     return null
   }
 

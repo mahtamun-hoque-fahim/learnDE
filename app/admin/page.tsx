@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function AdminDashboard() {
-  const { role, name, isLoaded, isSignedIn } = useAuth()
+  const { role, name, isLoading, isSignedIn } = useAuth()
   const router = useRouter()
   const [toggles, setToggles] = useState({
     registration: true,
@@ -27,12 +27,12 @@ export default function AdminDashboard() {
   })
 
   useEffect(() => {
-    if (isLoaded && (!isSignedIn || role !== 'admin')) {
+    if (!isLoading && (!isSignedIn || role !== 'admin')) {
       router.push('/auth/sign-in')
     }
-  }, [isLoaded, isSignedIn, role, router])
+  }, [isLoading, isSignedIn, role, router])
 
-  if (!isLoaded || role !== 'admin') {
+  if (isLoading || role !== 'admin') {
     return null
   }
 
