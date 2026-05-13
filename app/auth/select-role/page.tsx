@@ -1,42 +1,57 @@
 'use client'
 
-import { useUser } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-utils'
 
 export default function SelectRolePage() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
   const [selected, setSelected] = useState<'student' | 'staff' | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!isLoaded || !user) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3DF49A] mx-auto mb-2"></div>
+          <p className="text-[#8A938E]">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
-  // If user already has a role, redirect to appropriate dashboard
-  if (user.publicMetadata?.role) {
-    router.push(user.publicMetadata.role === 'admin' ? '/admin' : '/dashboard')
+  if (!user) {
+    router.push('/auth/sign-in')
+    return null
+  }
+
+  // If user already has a role, redirect to dashboard
+  if (user.role && user.role !== 'student') {
+    router.push(user.role === 'admin' ? '/admin' : '/staff')
     return null
   }
 
   const handleSelect = async (role: 'student' | 'staff') => {
     setLoading(true)
+    setError(null)
+
     try {
-      await user.update({
-        unsafeMetadata: {
-          role,
-        },
+      const response = await fetch('/api/auth/set-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
       })
-      // Update public metadata via Clerk user update
-      await user.update({
-        publicMetadata: {
-          role,
-        },
-      })
+
+      if (!response.ok) {
+        throw new Error('Failed to set role')
+      }
+
+      // Redirect to appropriate dashboard
       router.push(role === 'student' ? '/dashboard' : '/staff')
-    } catch (error) {
-      console.error('Failed to set role:', error)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
       setLoading(false)
     }
   }
@@ -66,9 +81,16 @@ export default function SelectRolePage() {
             </div>
             <span className="font-bold text-xl">LearnDE</span>
           </div>
-          <h1 className="text-3xl font-bold mb-3">Welcome to LearnDE</h1>
+          <h1 className="text-3xl font-bold mb-3">Welcome, {user.name}!</h1>
           <p className="text-[#8A938E] text-sm">Choose your role to get started</p>
         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-6 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Role Selection Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
