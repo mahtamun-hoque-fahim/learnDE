@@ -178,8 +178,8 @@ export default async function HomePage() {
         .hero-cta { display:flex;gap:14px;justify-content:center;flex-wrap:wrap }
         .hero-stats { position:relative;z-index:2;margin-top:80px;display:flex;gap:52px;justify-content:center;flex-wrap:wrap }
         .hero-stat { text-align:center }
-        .hero-stat-n { font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--text) }
-        .hero-stat-l { font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-top:6px }
+        .hero-stat-n { font-size:30px;font-weight:700;letter-spacing:-.02em;color:rgba(255,255,255,.55) }
+        .hero-stat-l { font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:6px }
 
         .strip { border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0;background:rgba(255,255,255,.015) }
         .strip-inner { max-width:1280px;margin:0 auto;padding:0 32px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted) }
@@ -197,11 +197,11 @@ export default async function HomePage() {
         .chap { display:grid;grid-template-columns:80px 1fr auto auto 44px;align-items:center;gap:20px;padding:26px 28px;background:var(--bg);transition:.2s;cursor:pointer }
         .chap:hover { background:#0D120F }
         .chap:hover .chap-arr { background:var(--mint);color:#06160E;border-color:var(--mint) }
-        .chap-num { font-family:var(--font-mono),monospace;font-size:12px;color:var(--mint);letter-spacing:.08em;font-weight:600;white-space:nowrap }
+        .chap-num { font-family:var(--font-mono),monospace;font-size:12px;color:rgba(255,255,255,.35);letter-spacing:.08em;font-weight:600;white-space:nowrap }
         .chap-body { min-width:0 }
         .chap-t { font-size:17px;font-weight:700;letter-spacing:-0.015em;color:var(--text);margin-bottom:5px }
         .chap-d { font-weight:400;color:var(--muted);font-size:13px;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
-        .chap-ref { font-size:11px;color:var(--mint);font-family:var(--font-mono),monospace;background:var(--mint-soft);border:1px solid rgba(61,244,154,.2);padding:4px 10px;border-radius:6px;white-space:nowrap }
+        .chap-ref { font-size:11px;color:rgba(255,255,255,.4);font-family:var(--font-mono),monospace;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:4px 10px;border-radius:6px;white-space:nowrap }
         .chap-time { font-size:12px;color:var(--dim);font-family:var(--font-mono),monospace;white-space:nowrap;text-align:right }
         .chap-arr { width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--muted);transition:.2s;flex-shrink:0;justify-self:end }
 
