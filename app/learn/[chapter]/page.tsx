@@ -12,7 +12,7 @@ declare global {
 }
 
 // ── Individual KaTeX components — each manages its own rendering ──────────────
-function KatexBlock({ math }: { math: string }) {
+function KatexBlock({ math, accent = false }: { math: string; accent?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = ref.current; if (!el) return
@@ -27,14 +27,17 @@ function KatexBlock({ math }: { math: string }) {
   return (
     <div ref={ref} style={{
       textAlign: 'center', padding: '20px 16px', margin: '18px 0',
-      background: '#0B0F0D', border: '1px solid var(--line-2)',
-      borderLeft: '2px solid var(--mint)', borderRadius: 10, overflowX: 'auto',
-      color: 'var(--mint)', minHeight: 48,
+      background: accent ? 'rgba(61,244,154,.04)' : '#0B0F0D',
+      border: '1px solid var(--line-2)',
+      borderLeft: `2px solid ${accent ? 'var(--mint)' : 'rgba(255,255,255,.15)'}`,
+      borderRadius: 10, overflowX: 'auto',
+      color: accent ? 'var(--mint)' : 'rgba(255,255,255,.85)',
+      minHeight: 48,
     }} />
   )
 }
 
-function KatexInline({ math }: { math: string }) {
+function KatexInline({ math, accent = false }: { math: string; accent?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null)
   useEffect(() => {
     const el = ref.current; if (!el) return
@@ -46,21 +49,21 @@ function KatexInline({ math }: { math: string }) {
     }
     run()
   }, [math])
-  return <span ref={ref} style={{ color: 'var(--mint)' }} />
+  return <span ref={ref} style={{ color: accent ? 'var(--mint)' : 'rgba(255,255,255,.85)' }} />
 }
 
 // ── MathText: parse inline markdown + math ────────────────────────────────────
-function MathText({ text }: { text: string }) {
+function MathText({ text, accent = false }: { text: string; accent?: boolean }) {
   const segments = text.split(/((?:\$\$[\s\S]+?\$\$)|(?:\$[^$]+?\$)|(?:\*\*[^*]+?\*\*)|(?:\*[^*]+?\*))/g)
   return (
     <>
       {segments.map((seg, i) => {
         if (seg.startsWith('$$') && seg.endsWith('$$'))
-          return <KatexBlock key={i} math={seg.slice(2, -2)} />
+          return <KatexBlock key={i} math={seg.slice(2, -2)} accent={accent} />
         if (seg.startsWith('$') && seg.endsWith('$'))
-          return <KatexInline key={i} math={seg.slice(1, -1)} />
+          return <KatexInline key={i} math={seg.slice(1, -1)} accent={accent} />
         if (seg.startsWith('**') && seg.endsWith('**'))
-          return <strong key={i} style={{ color: 'var(--text)', fontWeight: 600 }}>{seg.slice(2, -2)}</strong>
+          return <strong key={i} style={{ color: 'rgba(255,255,255,.9)', fontWeight: 600 }}>{seg.slice(2, -2)}</strong>
         if (seg.startsWith('*') && seg.endsWith('*'))
           return <em key={i}>{seg.slice(1, -1)}</em>
         return <span key={i}>{seg}</span>
@@ -122,7 +125,7 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
                 <div key={ci} style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,.07)', background: '#0B0F0D', padding: '16px 14px' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 10 }}>{card.title}</div>
                   <div style={{ textAlign: 'center', color: 'var(--mint)' }}>
-                    <MathText text={card.content} />
+                    <MathText text={card.content} accent />
                   </div>
                 </div>
               ))}
@@ -168,20 +171,32 @@ function ChapterContent({ chapter }: { chapter: Chapter }) {
                 )}
               </div>
               <div style={{ padding: '20px' }}>
+                {/* Problem — green */}
                 <p style={{ fontSize: 15, color: 'rgba(255,255,255,.75)', marginBottom: 16 }}>
-                  <MathText text={ex.problem} />
+                  <MathText text={ex.problem} accent />
                 </p>
                 <details>
                   <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,.35)', userSelect: 'none', listStyle: 'none', padding: '6px 0' }}>
                     <span>Show step-by-step solution</span><span style={{ fontSize: 18 }}>+</span>
                   </summary>
                   <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {ex.steps.map((step, sti) => (
-                      <div key={sti} style={{ borderLeft: '2px solid rgba(255,255,255,.1)', paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 6, fontFamily: 'var(--font-mono),monospace' }}>{step.label}</div>
-                        <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,.65)' }}><MathText text={step.content} /></div>
-                      </div>
-                    ))}
+                    {ex.steps.map((step, sti) => {
+                      const isFinal = sti === ex.steps.length - 1
+                      return (
+                        <div key={sti} style={{
+                          borderLeft: `2px solid ${isFinal ? 'var(--mint)' : 'rgba(255,255,255,.1)'}`,
+                          paddingLeft: 16, paddingTop: 4, paddingBottom: 4,
+                          background: isFinal ? 'rgba(61,244,154,.02)' : 'transparent',
+                          borderRadius: isFinal ? '0 6px 6px 0' : 0,
+                        }}>
+                          <div style={{ fontSize: 10, color: isFinal ? 'var(--mint)' : 'rgba(255,255,255,.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 6, fontFamily: 'var(--font-mono),monospace' }}>{step.label}</div>
+                          {/* Final step — green math; all other steps — white math */}
+                          <div style={{ fontSize: 14.5, color: isFinal ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.65)' }}>
+                            <MathText text={step.content} accent={isFinal} />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </details>
               </div>
