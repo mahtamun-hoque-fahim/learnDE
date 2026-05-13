@@ -1,31 +1,76 @@
 @import "tailwindcss";
 
 :root {
-  --accent: #00e676;
-  --accent-dim: rgba(0, 230, 118, 0.12);
-  --border: rgba(255, 255, 255, 0.08);
-  --surface: rgba(255, 255, 255, 0.04);
+  --bg: #070807;
+  --bg-2: #0E1110;
+  --panel: rgba(19,23,21,.5);
+  --line: #1F2421;
+  --line-2: #2A312D;
+  --text: #F3F6F4;
+  --muted: #8A938E;
+  --dim: #5D6661;
+  --mint: #3DF49A;
+  --mint-2: #27D685;
+  --mint-soft: rgba(61,244,154,.12);
+  --rose: #F26B6B;
+
+  /* legacy compat */
+  --accent: #3DF49A;
+  --accent-dim: rgba(61,244,154,.12);
+  --border: #1F2421;
+  --surface: rgba(255,255,255,.03);
 }
 
-* { box-sizing: border-box; }
-body { background: #080808; color: #e8e8e8; }
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+::selection { background: var(--mint); color: #000; }
 
+/* faint global grid */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* green ambient glow */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 600px at 50% 110%, rgba(61,244,154,.10), transparent 70%),
+    radial-gradient(700px 500px at 100% -10%, rgba(61,244,154,.05), transparent 70%);
+}
+
+/* math blocks */
 .math-block {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin: 0.5rem 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 15px;
+  color: var(--mint);
+  padding: 18px 22px;
+  background: #0B0F0D;
+  border: 1px solid var(--line-2);
+  border-left: 2px solid var(--mint);
+  border-radius: 10px;
+  margin: 18px 0;
   overflow-x: auto;
-  text-align: center;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
-.fade-in { animation: fadeIn 0.3s ease; }
+.fade-in { animation: fadeIn 0.35s ease; }

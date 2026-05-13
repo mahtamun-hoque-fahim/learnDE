@@ -1,23 +1,23 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
-import { Syne, Onest } from 'next/font/google'
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-const syne = Syne({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
-const onest = Onest({
+const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-onest',
-  weight: ['400', '500', '600'],
+  variable: '--font-mono',
+  weight: ['400', '500'],
 })
 
 export const metadata: Metadata = {
-  title: 'LearnD.E. — Differential Equations for CSE 2nd Semester',
-  description: 'Interactive differential equations learning platform. Read chapters, take quizzes, earn certificates.',
+  title: 'dy/dx · Differential Equations, simplified',
+  description: 'Interactive differential equations learning platform for CSE 2nd Semester. Read chapters, take quizzes, earn certificates.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="beforeInteractive"
         />
       </head>
-      <body className={`${syne.variable} ${onest.variable} font-onest bg-[#080808] text-white antialiased`}>
+      <body className={`${jakarta.variable} ${jetbrains.variable} bg-[#070807] text-[#F3F6F4] antialiased`}
+        style={{ fontFamily: 'var(--font-jakarta), Helvetica, system-ui, sans-serif', fontSize: '15px', lineHeight: '1.5', letterSpacing: '-0.005em' }}>
         {children}
       </body>
     </html>
