@@ -4,6 +4,7 @@ import { DashboardLayout, type NavItem } from '@/app/components/dashboard/Dashbo
 import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader } from '@/app/components/dashboard/Cards'
+import { ReviewSubmissionModal } from '@/app/components/dashboard/ReviewSubmissionModal'
 import {
   IconHome,
   IconUsers,
@@ -14,11 +15,43 @@ import {
 } from '@/app/components/dashboard/Icons'
 import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+
+interface Submission {
+  id: number
+  userId: string
+  displayName: string
+  email?: string
+  university: string
+  department: string
+  batch: string
+  gender: string
+  phone?: string
+  studentIdNo?: string
+  note?: string
+  status: 'pending' | 'under_review' | 'approved' | 'rejected'
+  submittedAt: string
+  submittedAgo: string
+}
+
+interface StaffData {
+  stats: {
+    pending: number
+    underReview: number
+    approved: number
+    thisMonth: number
+  }
+  submissions: Submission[]
+}
 
 export default function StaffDashboard() {
   const { role, name, isLoading, isSignedIn } = useAuth()
   const router = useRouter()
+  const [data, setData] = useState<StaffData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading && (!isSignedIn || (role !== 'staff' && role !== 'admin'))) {
@@ -26,8 +59,83 @@ export default function StaffDashboard() {
     }
   }, [isLoading, isSignedIn, role, router])
 
+  useEffect(() => {
+    if (isSignedIn && (role === 'staff' || role === 'admin')) {
+      fetchSubmissions()
+    }
+  }, [isSignedIn, role])
+
+  const fetchSubmissions = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/staff/submissions')
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch submissions')
+      }
+      
+      const submissionsData = await res.json()
+      setData(submissionsData)
+    } catch (error) {
+      console.error('Submissions fetch error:', error)
+      toast.error('Failed to load submissions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReviewClick = (submission: Submission) => {
+    setSelectedSubmission(submission)
+    setIsModalOpen(true)
+  }
+
+  const handleReview = async (
+    submissionId: number,
+    action: 'approve' | 'reject' | 'under_review',
+    reviewData: { quoteText?: string; quoteAuthor?: string; rejectReason?: string }
+  ) => {
+    try {
+      const res = await fetch('/api/staff/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submissionId,
+          action,
+          quoteText: reviewData.quoteText,
+          quoteAuthor: reviewData.quoteAuthor,
+          reviewNote: reviewData.rejectReason,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to submit review')
+      }
+
+      // Refresh submissions list
+      await fetchSubmissions()
+    } catch (error) {
+      console.error('Review submission error:', error)
+      throw error // Let modal handle the error
+    }
+  }
+
   if (isLoading || (role !== 'staff' && role !== 'admin')) {
     return null
+  }
+
+  if (loading || !data) {
+    return (
+      <DashboardLayout
+        title="Staff Dashboard"
+        subtitle="Certificate Management"
+        navItems={[]}
+        role="staff"
+      >
+        <div className="flex items-center justify-center h-64">
+          <div className="text-[#8A938E]">Loading dashboard...</div>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   const navItems: NavItem[] = [
@@ -56,8 +164,6 @@ export default function StaffDashboard() {
       label: 'Announcements',
       href: '/staff?tab=announcements',
       icon: <IconAnnouncements />,
-      badge: '1',
-      badgeColor: 'amber',
     },
     {
       label: 'Reports',
@@ -69,167 +175,161 @@ export default function StaffDashboard() {
   const stats = [
     {
       label: 'Pending Submissions',
-      value: '5',
+      value: String(data.stats.pending),
       color: 'mint' as const,
       delta: { value: '+2', positive: true },
     },
     {
       label: 'Under Review',
-      value: '2',
+      value: String(data.stats.underReview),
       color: 'blue' as const,
       delta: { value: '2 hrs avg', positive: false },
     },
     {
       label: 'Approved',
-      value: '12',
+      value: String(data.stats.approved),
       color: 'amber' as const,
       delta: { value: '+3', positive: true },
     },
     {
       label: 'This Month',
-      value: '19',
+      value: String(data.stats.thisMonth),
       color: 'rose' as const,
-      delta: { value: 'approvals', positive: true },
+      delta: { value: '+8', positive: true },
     },
   ]
 
   return (
-    <DashboardLayout
-      title="Class Dashboard"
-      subtitle="BSc CSE · 2nd Semester"
-      navItems={navItems}
-      role={role as 'staff' | 'admin'}
-    >
-      {/* Greeting */}
-      <Greeting 
-        name={name || 'Faculty'} 
-        subtitle="You have 5 pending submissions to review" 
-      />
+    <>
+      <DashboardLayout
+        title="Staff Dashboard"
+        subtitle="Certificate Management"
+        navItems={navItems}
+        role="staff"
+      >
+        <Greeting 
+          name={name || 'Staff'} 
+          subtitle="Review student certificate submissions" 
+        />
 
-      {/* Stats */}
-      <StatsRow stats={stats} />
+        <StatsRow stats={stats} />
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-        {/* Pending Submissions Queue */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader
-              title="Pending Submissions"
-              action={<a href="/staff?tab=submissions" className="text-[#3DF49A]">View all →</a>}
-            />
-            <div className="space-y-2">
-              {[
-                { id: 1, name: 'Ananya Sharma', submitted: '2 hours ago', status: 'pending' },
-                { id: 2, name: 'Raj Patel', submitted: '5 hours ago', status: 'pending' },
-                { id: 3, name: 'Priya Kapoor', submitted: '1 day ago', status: 'pending' },
-                { id: 4, name: 'Arjun Singh', submitted: '1 day ago', status: 'under_review' },
-                { id: 5, name: 'Zainab Khan', submitted: '2 days ago', status: 'under_review' },
-              ].map((sub) => (
-                <div
-                  key={sub.id}
-                  className="flex items-center justify-between px-3 py-2.25 border-b border-[#1F2421] last:border-0 hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[12.5px] font-semibold">{sub.name}</div>
-                    <div className="text-[11px] text-[#8A938E]">Submitted {sub.submitted}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                        sub.status === 'pending'
-                          ? 'bg-[rgba(245,168,92,0.1)] text-[#F5A85C]'
-                          : 'bg-[rgba(96,168,250,0.1)] text-[#60A8FA]'
-                      }`}
+        {/* Pending Submissions */}
+        <Card>
+          <CardHeader
+            title="Pending Submissions"
+            subtitle={`${data.stats.pending} awaiting review`}
+          />
+          <div className="space-y-2">
+            {data.submissions.filter(s => s.status === 'pending').length > 0 ? (
+              data.submissions
+                .filter(s => s.status === 'pending')
+                .map((submission) => (
+                  <div
+                    key={submission.id}
+                    className="flex items-center gap-3 px-3 py-2.5 border-b border-[#1F2421] last:border-0 hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-semibold">{submission.displayName}</div>
+                      <div className="text-[11px] text-[#8A938E]">
+                        {submission.university} • {submission.department}
+                      </div>
+                      <div className="text-[10.5px] text-[#6B7470] mt-0.5">
+                        Submitted {submission.submittedAgo}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleReviewClick(submission)}
+                      className="px-3 py-1.5 bg-[#3DF49A] text-[#06160E] rounded-lg font-semibold text-[11.5px] hover:bg-[#5BFBA8] transition-colors"
                     >
-                      {sub.status === 'pending' ? '⏳ Pending' : '🔍 Reviewing'}
-                    </span>
-                    <button className="text-[#3DF49A] opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold">
-                      Review →
+                      Review
                     </button>
                   </div>
+                ))
+            ) : (
+              <div className="text-center py-8 text-[#8A938E] text-[12.5px]">
+                No pending submissions
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Under Review */}
+        {data.submissions.filter(s => s.status === 'under_review').length > 0 && (
+          <Card className="mt-3.5">
+            <CardHeader
+              title="Under Review"
+              subtitle={`${data.stats.underReview} in progress`}
+            />
+            <div className="space-y-2">
+              {data.submissions
+                .filter(s => s.status === 'under_review')
+                .map((submission) => (
+                  <div
+                    key={submission.id}
+                    className="flex items-center gap-3 px-3 py-2.5 border-b border-[#1F2421] last:border-0"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-semibold">{submission.displayName}</div>
+                      <div className="text-[11px] text-[#8A938E]">
+                        {submission.university}
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[rgba(96,168,250,0.12)] text-[#60A8FA]">
+                      Under Review
+                    </span>
+                    <button
+                      onClick={() => handleReviewClick(submission)}
+                      className="px-3 py-1.5 bg-[rgba(255,255,255,0.05)] text-[#F3F6F4] rounded-lg font-semibold text-[11.5px] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Recent Approved */}
+        <Card className="mt-3.5">
+          <CardHeader
+            title="Recently Approved"
+            subtitle="Last 5 approvals"
+          />
+          <div className="space-y-2">
+            {data.submissions
+              .filter(s => s.status === 'approved')
+              .slice(0, 5)
+              .map((submission) => (
+                <div
+                  key={submission.id}
+                  className="flex items-center gap-3 px-3 py-2.5 border-b border-[#1F2421] last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold">{submission.displayName}</div>
+                    <div className="text-[11px] text-[#8A938E]">
+                      {submission.university}
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[rgba(61,244,154,0.12)] text-[#3DF49A]">
+                    Approved
+                  </span>
                 </div>
               ))}
-            </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
+      </DashboardLayout>
 
-        {/* Class Stats */}
-        <div className="space-y-3.5">
-          <Card>
-            <CardHeader title="Class Statistics" />
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-[11px] text-[#8A938E]">Completion Rate</span>
-                  <span className="text-[11px] font-semibold text-[#3DF49A]">67%</span>
-                </div>
-                <div className="h-2 bg-[#1F2421] rounded-full overflow-hidden">
-                  <div className="h-full w-2/3 bg-[#3DF49A] rounded-full" />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-[11px] text-[#8A938E]">Avg Quiz Score</span>
-                  <span className="text-[11px] font-semibold text-[#60A8FA]">82%</span>
-                </div>
-                <div className="h-2 bg-[#1F2421] rounded-full overflow-hidden">
-                  <div className="h-full w-[82%] bg-[#60A8FA] rounded-full" />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-[11px] text-[#8A938E]">Student Engagement</span>
-                  <span className="text-[11px] font-semibold text-[#F5A85C]">71%</span>
-                </div>
-                <div className="h-2 bg-[#1F2421] rounded-full overflow-hidden">
-                  <div className="h-full w-[71%] bg-[#F5A85C] rounded-full" />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <CardHeader title="Announcements" />
-            <button className="w-full py-2 text-[12px] font-semibold text-[#3DF49A] hover:text-[#5BFBA8] transition-colors rounded-lg hover:bg-[rgba(61,244,154,0.08)]">
-              + Create Announcement
-            </button>
-          </Card>
-        </div>
-      </div>
-
-      {/* Chapter Performance */}
-      <Card className="mt-3.5">
-        <CardHeader title="Chapter Difficulty Ranking" />
-        <div className="space-y-2">
-          {[
-            { ch: 'Chapter 3: 2nd Order ODEs', difficulty: 'Hard', students: 12 },
-            { ch: 'Chapter 6: Laplace Transforms', difficulty: 'Hard', students: 8 },
-            { ch: 'Chapter 2: 1st Order ODEs', difficulty: 'Medium', students: 4 },
-            { ch: 'Chapter 1: Introduction', difficulty: 'Easy', students: 2 },
-          ].map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between px-3 py-2.25 border-b border-[#1F2421] last:border-0">
-              <div className="flex-1">
-                <div className="text-[12.5px] font-semibold">{item.ch}</div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                    item.difficulty === 'Hard'
-                      ? 'bg-[rgba(242,107,107,0.1)] text-[#F26B6B]'
-                      : item.difficulty === 'Medium'
-                        ? 'bg-[rgba(245,168,92,0.1)] text-[#F5A85C]'
-                        : 'bg-[rgba(61,244,154,0.1)] text-[#3DF49A]'
-                  }`}
-                >
-                  {item.difficulty}
-                </span>
-                <span className="text-[11px] text-[#8A938E] w-12 text-right">{item.students} students</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </DashboardLayout>
+      {/* Review Modal */}
+      <ReviewSubmissionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedSubmission(null)
+        }}
+        submission={selectedSubmission}
+        onReview={handleReview}
+      />
+    </>
   )
 }
