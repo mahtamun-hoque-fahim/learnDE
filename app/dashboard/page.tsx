@@ -13,11 +13,49 @@ import {
 } from '@/app/components/dashboard/Icons'
 import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+
+interface DashboardData {
+  stats: {
+    chaptersRead: number
+    totalChapters: number
+    quizzesPassed: number
+    totalQuizzes: number
+    overallProgress: number
+    streak: number
+  }
+  continueData: {
+    chapterNum: number
+    title: string
+    slug: string
+    progress: number
+  } | null
+  chapters: Array<{
+    num: number
+    slug: string
+    title: string
+    status: 'completed' | 'reading' | 'unread'
+    quiz: 'passed' | 'failed' | 'untaken'
+  }>
+  recentQuizzes: Array<{
+    ch: number
+    score: number
+    status: 'passed' | 'failed'
+    date: string
+  }>
+  certStatus: {
+    canApply: boolean
+    submitted: boolean
+    status: string | null
+  }
+}
 
 export default function StudentDashboard() {
   const { role, name, isLoading, isSignedIn } = useAuth()
   const router = useRouter()
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!isLoading && (!isSignedIn || role !== 'student')) {
@@ -25,8 +63,49 @@ export default function StudentDashboard() {
     }
   }, [isLoading, isSignedIn, role, router])
 
+  // Fetch dashboard data
+  useEffect(() => {
+    if (isSignedIn && role === 'student') {
+      fetchDashboardData()
+    }
+  }, [isSignedIn, role])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/student/dashboard')
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch dashboard data')
+      }
+      
+      const dashboardData = await res.json()
+      setData(dashboardData)
+    } catch (error) {
+      console.error('Dashboard fetch error:', error)
+      toast.error('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (isLoading || role !== 'student') {
     return null
+  }
+
+  if (loading || !data) {
+    return (
+      <DashboardLayout
+        title="My Dashboard"
+        subtitle="BSc CSE · 2nd Semester"
+        navItems={[]}
+        role="student"
+      >
+        <div className="flex items-center justify-center h-64">
+          <div className="text-[#8A938E]">Loading dashboard...</div>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   const navItems: NavItem[] = [
@@ -45,7 +124,9 @@ export default function StudentDashboard() {
       label: 'Quizzes',
       href: '/quiz',
       icon: <IconQuiz />,
-      badge: '2',
+      badge: data.stats.totalQuizzes - data.stats.quizzesPassed > 0 
+        ? String(data.stats.totalQuizzes - data.stats.quizzesPassed) 
+        : undefined,
     },
     {
       label: 'Progress',
@@ -62,31 +143,31 @@ export default function StudentDashboard() {
   const stats = [
     {
       label: 'Chapters Read',
-      value: '4',
-      unit: '/ 8',
+      value: String(data.stats.chaptersRead),
+      unit: `/ ${data.stats.totalChapters}`,
       color: 'mint' as const,
       delta: { value: '+1', positive: true },
     },
     {
       label: 'Quizzes Passed',
-      value: '3',
-      unit: '/ 8',
+      value: String(data.stats.quizzesPassed),
+      unit: `/ ${data.stats.totalQuizzes}`,
       color: 'blue' as const,
       delta: { value: '+1', positive: true },
     },
     {
       label: 'Overall Progress',
-      value: '53',
+      value: String(data.stats.overallProgress),
       unit: '%',
       color: 'amber' as const,
       delta: { value: '+5%', positive: true },
     },
     {
       label: 'Streak',
-      value: '5',
+      value: String(data.stats.streak),
       unit: 'days',
       color: 'rose' as const,
-      delta: { value: 'Active', positive: true },
+      delta: { value: 'Active', positive: data.stats.streak > 0 },
     },
   ]
 
@@ -100,27 +181,29 @@ export default function StudentDashboard() {
       {/* Greeting */}
       <Greeting 
         name={name || 'Student'} 
-        subtitle="You're 50% through the course" 
+        subtitle={`You're ${data.stats.overallProgress}% through the course`} 
       />
 
       {/* Stats */}
       <StatsRow stats={stats} />
 
       {/* Continue Learning Card */}
-      <ContinueCard
-        title="Chapter 4: Partial Differential Equations"
-        subtitle="Continue where you left off. You were on page 12 of 28."
-        progress={43}
-        progressColor="mint"
-        button={
-          <a
-            href="/learn/chapter-4"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#3DF49A] text-[#06160E] rounded-lg font-semibold text-[12.5px] hover:bg-[#5BFBA8] transition-colors"
-          >
-            Continue
-          </a>
-        }
-      />
+      {data.continueData && (
+        <ContinueCard
+          title={`Chapter ${data.continueData.chapterNum}: ${data.continueData.title}`}
+          subtitle="Continue where you left off."
+          progress={data.continueData.progress}
+          progressColor="mint"
+          button={
+            <a
+              href={`/learn/${data.continueData.slug}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#3DF49A] text-[#06160E] rounded-lg font-semibold text-[12.5px] hover:bg-[#5BFBA8] transition-colors"
+            >
+              Continue
+            </a>
+          }
+        />
+      )}
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
@@ -132,13 +215,7 @@ export default function StudentDashboard() {
               action={<a href="/learn" className="text-[#3DF49A]">View all →</a>}
             />
             <div className="space-y-2">
-              {[
-                { num: 1, title: 'Introduction to ODEs', status: 'completed', quiz: 'passed' },
-                { num: 2, title: 'First Order ODEs', status: 'completed', quiz: 'passed' },
-                { num: 3, title: 'Second Order ODEs', status: 'completed', quiz: 'passed' },
-                { num: 4, title: 'Partial Differential Equations', status: 'reading', quiz: 'pending' },
-                { num: 5, title: 'Boundary Value Problems', status: 'unread', quiz: 'untaken' },
-              ].map((ch) => (
+              {data.chapters.slice(0, 5).map((ch) => (
                 <div
                   key={ch.num}
                   className="flex items-center gap-2.5 px-3 py-2.25 border-b border-[#1F2421] last:border-0 hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer"
@@ -149,26 +226,26 @@ export default function StudentDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         ch.status === 'completed'
-                          ? 'bg-[rgba(61,244,154,0.1)] text-[#3DF49A]'
+                          ? 'bg-[rgba(61,244,154,0.12)] text-[#3DF49A]'
                           : ch.status === 'reading'
-                            ? 'bg-[rgba(96,168,250,0.1)] text-[#60A8FA]'
-                            : 'bg-[rgba(74,84,80,0.4)] text-[#8A938E]'
+                          ? 'bg-[rgba(96,168,250,0.12)] text-[#60A8FA]'
+                          : 'bg-[rgba(255,255,255,0.05)] text-[#8A938E]'
                       }`}
                     >
-                      {ch.status === 'completed' ? '✓ Read' : ch.status === 'reading' ? '◐ Reading' : '○ Unread'}
+                      {ch.status === 'completed' ? 'Read' : ch.status === 'reading' ? 'Reading' : 'Unread'}
                     </span>
                     <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         ch.quiz === 'passed'
-                          ? 'bg-[rgba(61,244,154,0.1)] text-[#3DF49A]'
-                          : ch.quiz === 'pending'
-                            ? 'bg-[rgba(245,168,92,0.1)] text-[#F5A85C]'
-                            : 'bg-[rgba(74,84,80,0.4)] text-[#8A938E]'
+                          ? 'bg-[rgba(61,244,154,0.12)] text-[#3DF49A]'
+                          : ch.quiz === 'failed'
+                          ? 'bg-[rgba(242,107,107,0.12)] text-[#F26B6B]'
+                          : 'bg-[rgba(255,255,255,0.05)] text-[#8A938E]'
                       }`}
                     >
-                      {ch.quiz === 'passed' ? '✓ Passed' : ch.quiz === 'pending' ? '○ Pending' : '○ Untaken'}
+                      {ch.quiz === 'passed' ? 'Passed' : ch.quiz === 'failed' ? 'Failed' : 'Untaken'}
                     </span>
                   </div>
                 </div>
@@ -177,58 +254,104 @@ export default function StudentDashboard() {
           </Card>
         </div>
 
-        {/* Recent Attempts */}
+        {/* Recent Quiz Attempts */}
         <div>
           <Card>
-            <CardHeader title="Recent Quiz Attempts" />
-            <div className="space-y-2">
-              {[
-                { ch: 3, score: 85, status: 'passed', date: '2 days ago' },
-                { ch: 2, score: 92, status: 'passed', date: '5 days ago' },
-                { ch: 1, score: 78, status: 'passed', date: '1 week ago' },
-              ].map((attempt, idx) => (
-                <div
-                  key={idx}
-                  className="px-3 py-2.25 border-b border-[#1F2421] last:border-0 text-[11px]"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold">Chapter {attempt.ch}</span>
-                    <span
-                      className={`font-bold ${
-                        attempt.status === 'passed' ? 'text-[#3DF49A]' : 'text-[#F26B6B]'
-                      }`}
-                    >
-                      {attempt.score}%
-                    </span>
+            <CardHeader title="Recent Quizzes" />
+            <div className="space-y-2.5">
+              {data.recentQuizzes.length > 0 ? (
+                data.recentQuizzes.map((quiz, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-[rgba(255,255,255,0.04)] flex items-center justify-center text-[12.5px] font-bold text-[#8A938E]">
+                      {quiz.ch}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12.5px] font-semibold">Chapter {quiz.ch}</div>
+                      <div className="text-[11px] text-[#8A938E]">{quiz.date}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-[12.5px] font-bold ${
+                        quiz.status === 'passed' ? 'text-[#3DF49A]' : 'text-[#F26B6B]'
+                      }`}>
+                        {quiz.score}%
+                      </div>
+                      <div className={`text-[10px] font-semibold ${
+                        quiz.status === 'passed' ? 'text-[#3DF49A]' : 'text-[#F26B6B]'
+                      }`}>
+                        {quiz.status === 'passed' ? 'Passed' : 'Failed'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-[#8A938E]">{attempt.date}</div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-[#8A938E] text-[12.5px]">
+                  No quiz attempts yet
                 </div>
-              ))}
+              )}
+            </div>
+          </Card>
+
+          {/* Certificate Status */}
+          <Card className="mt-3.5">
+            <CardHeader title="Certificate" />
+            <div className="space-y-2.5">
+              {data.certStatus.canApply && !data.certStatus.submitted && (
+                <div className="text-[12.5px] text-[#8A938E] mb-3">
+                  You've completed all requirements!
+                </div>
+              )}
+              
+              {data.certStatus.submitted && (
+                <div className={`px-3 py-2 rounded-lg ${
+                  data.certStatus.status === 'approved'
+                    ? 'bg-[rgba(61,244,154,0.12)] border border-[rgba(61,244,154,0.2)]'
+                    : data.certStatus.status === 'pending'
+                    ? 'bg-[rgba(245,168,92,0.12)] border border-[rgba(245,168,92,0.2)]'
+                    : data.certStatus.status === 'under_review'
+                    ? 'bg-[rgba(96,168,250,0.12)] border border-[rgba(96,168,250,0.2)]'
+                    : 'bg-[rgba(242,107,107,0.12)] border border-[rgba(242,107,107,0.2)]'
+                }`}>
+                  <div className={`text-[12.5px] font-semibold mb-0.5 ${
+                    data.certStatus.status === 'approved'
+                      ? 'text-[#3DF49A]'
+                      : data.certStatus.status === 'pending'
+                      ? 'text-[#F5A85C]'
+                      : data.certStatus.status === 'under_review'
+                      ? 'text-[#60A8FA]'
+                      : 'text-[#F26B6B]'
+                  }`}>
+                    {data.certStatus.status === 'approved' && 'Certificate Approved'}
+                    {data.certStatus.status === 'pending' && 'Under Review'}
+                    {data.certStatus.status === 'under_review' && 'Being Reviewed'}
+                    {data.certStatus.status === 'rejected' && 'Needs Attention'}
+                  </div>
+                  <div className="text-[11px] text-[#8A938E]">
+                    {data.certStatus.status === 'approved' && 'Your certificate is ready!'}
+                    {data.certStatus.status === 'pending' && 'Staff will review soon'}
+                    {data.certStatus.status === 'under_review' && 'Staff is reviewing your work'}
+                    {data.certStatus.status === 'rejected' && 'Check your email for details'}
+                  </div>
+                </div>
+              )}
+
+              {data.certStatus.canApply && !data.certStatus.submitted && (
+                <a
+                  href="/certificate/apply"
+                  className="block w-full text-center px-4 py-2 bg-[#3DF49A] text-[#06160E] rounded-lg font-semibold text-[12.5px] hover:bg-[#5BFBA8] transition-colors"
+                >
+                  Apply for Certificate
+                </a>
+              )}
+              
+              {!data.certStatus.canApply && !data.certStatus.submitted && (
+                <div className="text-center py-4 text-[#8A938E] text-[11px]">
+                  Complete all chapters and quizzes to apply
+                </div>
+              )}
             </div>
           </Card>
         </div>
       </div>
-
-      {/* Certificate Status */}
-      <Card className="mt-3.5">
-        <CardHeader title="Certificate Status" />
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[12px] text-[#8A938E] mb-1">
-              Complete all chapters & quizzes to apply for your certificate
-            </p>
-            <div className="text-[13px] font-semibold">
-              Progress: <span className="text-[#3DF49A]">4/8</span> chapters, <span className="text-[#60A8FA]">3/8</span> quizzes
-            </div>
-          </div>
-          <button
-            disabled
-            className="px-4 py-2 bg-[#2A312D] text-[#8A938E] rounded-lg font-semibold text-[12.5px] cursor-not-allowed"
-          >
-            Apply Certificate
-          </button>
-        </div>
-      </Card>
     </DashboardLayout>
   )
 }
