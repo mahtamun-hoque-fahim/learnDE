@@ -1,13 +1,21 @@
 import { auth } from '@/lib/auth-better'
 
 /**
- * Better Auth automatically creates routes for:
+ * Better Auth Unified Handler
+ * 
+ * All /api/auth/* requests are routed here.
+ * BetterAuth automatically creates routes for:
  * - POST /api/auth/sign-up
  * - POST /api/auth/sign-in
- * - POST /api/auth/logout
+ * - POST /api/auth/sign-out
  * - GET /api/auth/session
- * - etc.
+ * - POST /api/auth/reset-password
+ * - POST /api/auth/list-accounts
+ * - + 15+ more endpoints
  * 
- * This catch-all route handles all Better Auth endpoints
+ * No manual request/response handling needed.
+ * Better Auth handles everything automatically.
  */
-export const { GET, POST } = auth.handler
+export const { GET, POST } = auth.handler({
+  prefix: '/api/auth',
+})
