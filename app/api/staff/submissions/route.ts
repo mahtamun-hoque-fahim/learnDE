@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { certSubmissions, users, certificates } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
+import { sendCertificateReady, sendRejectionNotice } from '@/lib/email'
 
 /**
  * GET /api/staff/submissions
@@ -158,6 +159,23 @@ export async function PATCH(req: NextRequest) {
         quoteAuthor,
       })
 
+      // Send email notification
+      const [student] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, sub.userId))
+        .limit(1)
+
+      if (student?.email) {
+        await sendCertificateReady({
+          studentEmail: student.email,
+          studentName: sub.displayName,
+          certificateId: certId,
+          quoteText,
+          quoteAuthor,
+        })
+      }
+
       return NextResponse.json({ ok: true, certificateId: certId })
     }
 
@@ -171,6 +189,21 @@ export async function PATCH(req: NextRequest) {
           reviewedAt: new Date(),
         })
         .where(eq(certSubmissions.id, submissionId))
+
+      // Send email notification
+      const [student] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, sub.userId))
+        .limit(1)
+
+      if (student?.email) {
+        await sendRejectionNotice({
+          studentEmail: student.email,
+          studentName: sub.displayName,
+          reason: reviewNote || 'Your submission was not approved.',
+        })
+      }
 
       return NextResponse.json({ ok: true })
     }

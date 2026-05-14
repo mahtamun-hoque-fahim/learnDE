@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { Modal, ModalFooter, Button } from './Modal'
 
 interface Submission {
@@ -44,22 +45,40 @@ export function ReviewSubmissionModal({
     if (!action) return
 
     if (action === 'approve' && (!quoteText || !quoteAuthor)) {
-      alert('Please provide a quote and author name')
+      toast.error('Please provide a quote and author name')
       return
     }
 
     if (action === 'reject' && !rejectReason) {
-      alert('Please provide a rejection reason')
+      toast.error('Please provide a rejection reason')
       return
     }
 
     setLoading(true)
+    const toastId = toast.loading(
+      action === 'approve' 
+        ? 'Approving submission...' 
+        : action === 'reject' 
+          ? 'Rejecting submission...' 
+          : 'Updating status...'
+    )
+    
     try {
       await onReview(submission.id, action, {
         quoteText: action === 'approve' ? quoteText : undefined,
         quoteAuthor: action === 'approve' ? quoteAuthor : undefined,
         rejectReason: action === 'reject' ? rejectReason : undefined,
       })
+      
+      toast.success(
+        action === 'approve' 
+          ? 'Certificate approved and email sent!' 
+          : action === 'reject' 
+            ? 'Submission rejected and email sent' 
+            : 'Status updated successfully',
+        { id: toastId }
+      )
+      
       onClose()
       // Reset form
       setAction(null)
@@ -68,7 +87,7 @@ export function ReviewSubmissionModal({
       setRejectReason('')
     } catch (error) {
       console.error('Review error:', error)
-      alert('Failed to submit review. Please try again.')
+      toast.error('Failed to submit review. Please try again.', { id: toastId })
     } finally {
       setLoading(false)
     }
