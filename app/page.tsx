@@ -85,7 +85,7 @@ export default async function HomePage() {
         <div className="strip-inner">
           <span>Reference · <b>H.K. Dass · Engineering Mathematics</b></span>
           <span className="sep">/</span>
-          <span>Sections <b>3.9–3.11</b></span>
+          <span>Sections <b>3.1–3.31</b></span>
           <span className="sep">/</span>
           <span>Interactive · <b>quizzes</b> after every chapter</span>
           <span className="sep">/</span>

@@ -9,15 +9,15 @@ const FAQS = [
     items: [
       {
         q: 'What is LearnDE?',
-        a: 'LearnDE is a free, interactive course on Differential Equations built specifically for BSc (Hons.) CSE 2nd-semester students. It covers 8 focused chapters, each with in-depth explanations, worked examples, and quizzes — and issues a verified certificate when you complete everything.',
+        a: 'LearnDE is a free, interactive course on Differential Equations built specifically for BSc (Hons.) CSE 2nd-semester students. It covers 12 in-depth chapters — from foundations through second-order DEs and real-world applications — each with worked examples, quizzes, and bonus problems. A verified certificate is issued when you complete everything.',
       },
       {
         q: 'What textbook is this based on?',
-        a: 'The entire curriculum is drawn from H.K. Dass — Engineering Mathematics, Sections 3.9–3.11 (pages 147–158). Every chapter maps directly to a specific section so you can follow along in the book.',
+        a: 'The entire curriculum is drawn from H.K. Dass — Engineering Mathematics, Chapter 3: Differential Equations (Sections 3.1–3.31). Every chapter maps directly to specific sections so you can follow along in the book.',
       },
       {
         q: 'How many chapters are there and how long will it take?',
-        a: 'There are 8 chapters, ranging from 6 to 14 minutes of reading each. Most students complete the full course in around 3 hours of focused study. You can go at your own pace — progress is saved automatically.',
+        a: 'There are 12 chapters, ranging from 5 to 15 minutes of reading each. Most students complete the full course in around 5 hours of focused study. You can go at your own pace — progress is saved automatically.',
       },
       {
         q: 'What topics does the course cover?',
@@ -64,7 +64,7 @@ const FAQS = [
     items: [
       {
         q: 'How do I earn my certificate?',
-        a: 'To be eligible, you must: (1) create a verified account, (2) mark all 8 chapters as read, (3) pass all 8 chapter quizzes with at least 60%, and (4) submit a certificate application from your dashboard. A moderator then reviews your submission manually.',
+        a: 'To be eligible, you must: (1) create a verified account, (2) mark all 12 chapters as read, (3) pass all 12 chapter quizzes with at least 60%, and (4) submit a certificate application from your dashboard. A moderator then reviews your submission manually.',
       },
       {
         q: 'What happens during the moderator review?',

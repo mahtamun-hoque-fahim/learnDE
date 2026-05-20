@@ -25,239 +25,100 @@ export interface Example {
 
 export const CHAPTERS: Chapter[] = [
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 1 — INTRODUCTION
-  // ═══════════════════════════════════════════════════════════════════
+  // =====================================================================
+  // CH 1 -- FOUNDATIONS: DEFINITIONS, ORDER, DEGREE AND FORMATION
+  // =====================================================================
   {
-    slug: 'intro',
-    title: 'Introduction to Differential Equations',
+    slug: 'foundations',
+    title: 'Foundations -- Definitions, Order, Degree and Formation',
     order: 1,
-    summary: 'A DE is an equation relating an unknown function and its derivatives. Solutions are functions, not numbers.',
+    ref: 'H.K. Dass 3.1-3.3',
+    summary: 'An equation containing derivatives is called a differential equation. We classify DEs by order, degree, and type (ODE vs PDE), and learn to form DEs by eliminating arbitrary constants.',
     sections: [
       {
         title: 'What is a Differential Equation?',
-        body: 'A **differential equation (DE)** is an equation that contains an unknown function and one or more of its derivatives. Unlike algebra where we solve for a number, here we solve for a **function**.\n\nThe simplest possible DE:\n$$\\frac{dy}{dx} = 2x$$\nThis says "the rate of change of y with respect to x equals 2x". The solution is not a number — it is a whole family of curves:\n$$y = x^2 + C$$\nEvery value of C gives a different parabola. Together they form the **general solution**.',
-        sideNote: 'The word "differential" refers to the differentials $dy$ and $dx$. A DE is simply any equation that links a function to how it changes.',
+        body: 'An equation that contains derivatives is called a **differential equation (DE)**.\n\nA normal equation like $y = 3x + 2$ tells you the direct relationship between $y$ and $x$. A differential equation like $\\frac{dy}{dx} = 3$ tells you something about the **rate of change** of $y$ with respect to $x$.\n\nThere are two types:\n\n**Ordinary Differential Equation (ODE):** Only one independent variable is involved. All derivatives are ordinary derivatives ($d/dx$).\nExample: $\\frac{dy}{dx} + 3y = x$\n\n**Partial Differential Equation (PDE):** More than one independent variable. Derivatives are partial derivatives.\nExample: $\\frac{\\partial u}{\\partial x} + \\frac{\\partial u}{\\partial y} = 0$\n\nWe will only study ODEs in this course.',
+        sideNote: 'Think of it this way: in algebra we solve for a number, but in differential equations we solve for a function. The solution is an entire curve, not a single point.',
         cards: [
           { title: 'Population growth', content: '$$\\frac{dP}{dt} = kP$$' },
           { title: "Newton's cooling", content: '$$\\frac{dT}{dt} = k(T - T_0)$$' },
           { title: 'RC circuit', content: '$$R\\frac{dq}{dt} + \\frac{q}{C} = V$$' },
         ],
-        examples: [
-          {
-            label: 'Example 1',
-            difficulty: 'easy',
-            problem: 'Verify that $y = x^2 + C$ is a solution of $\\frac{dy}{dx} = 2x$.',
-            steps: [
-              { label: 'Differentiate y', content: '$\\frac{dy}{dx} = \\frac{d}{dx}(x^2 + C) = 2x + 0 = 2x$' },
-              { label: 'Compare with DE', content: 'The right-hand side of the DE is also $2x$ ✓' },
-              { label: 'Conclusion', content: 'Since $\\frac{dy}{dx} = 2x$ is satisfied for every C, $y = x^2 + C$ is indeed the general solution.' },
-            ],
-          },
-          {
-            label: 'Example 2',
-            difficulty: 'medium',
-            problem: 'Show that $y = Ce^{2x}$ satisfies $\\frac{dy}{dx} = 2y$.',
-            steps: [
-              { label: 'Differentiate y', content: '$\\frac{dy}{dx} = C \\cdot 2e^{2x} = 2Ce^{2x}$' },
-              { label: 'Substitute back', content: '$2y = 2 \\cdot Ce^{2x} = 2Ce^{2x}$' },
-              { label: 'Verify equality', content: '$\\frac{dy}{dx} = 2Ce^{2x} = 2y$ ✓ The DE is satisfied for all C.' },
-            ],
-          },
-        ],
-      },
-      {
-        title: 'General vs Particular Solution',
-        body: 'A **general solution** contains one or more arbitrary constants. It represents a whole **family of curves**.\n\nA **particular solution** is obtained by giving the constants specific values — usually from an **initial condition** such as $y(0) = 3$ or $y(1) = 5$.\n\nThe number of arbitrary constants equals the **order** of the DE.',
-        sideNote: 'An initial condition is a known value of the function (or its derivative) at a specific point. It "pins down" one member of the family of curves.',
-        examples: [
-          {
-            label: 'Example 1',
-            difficulty: 'easy',
-            problem: 'Solve $\\frac{dy}{dx} = 3x^2$, given $y(0) = 5$.',
-            steps: [
-              { label: 'Integrate both sides', content: '$\\int dy = \\int 3x^2\\,dx$' },
-              { label: 'Evaluate the integrals', content: '$y = x^3 + C$ (general solution — a family of cubics)' },
-              { label: 'Apply initial condition y(0) = 5', content: 'Substitute $x = 0$, $y = 5$: $\\quad 5 = 0^3 + C \\Rightarrow C = 5$' },
-              { label: 'Particular solution', content: '$$y = x^3 + 5$$' },
-            ],
-          },
-          {
-            label: 'Example 2',
-            difficulty: 'medium',
-            problem: 'Solve $\\frac{d^2y}{dx^2} = 6x$, given $y(0) = 1$ and $y\'(0) = 2$.',
-            steps: [
-              { label: 'First integration', content: '$\\frac{dy}{dx} = \\int 6x\\,dx = 3x^2 + C_1$' },
-              { label: 'Apply y\'(0) = 2', content: '$2 = 3(0)^2 + C_1 \\Rightarrow C_1 = 2$, so $y\' = 3x^2 + 2$' },
-              { label: 'Second integration', content: '$y = \\int (3x^2 + 2)\\,dx = x^3 + 2x + C_2$' },
-              { label: 'Apply y(0) = 1', content: '$1 = 0 + 0 + C_2 \\Rightarrow C_2 = 1$' },
-              { label: 'Particular solution', content: '$$y = x^3 + 2x + 1$$' },
-            ],
-          },
-          {
-            label: 'Example 3',
-            difficulty: 'hard',
-            problem: 'Show that $y = A\\sin x + B\\cos x$ is the general solution of $\\frac{d^2y}{dx^2} + y = 0$.',
-            steps: [
-              { label: 'First derivative', content: '$y\' = A\\cos x - B\\sin x$' },
-              { label: 'Second derivative', content: '$y\'\' = -A\\sin x - B\\cos x$' },
-              { label: 'Substitute into DE', content: '$y\'\' + y = (-A\\sin x - B\\cos x) + (A\\sin x + B\\cos x) = 0$ ✓' },
-              { label: 'Count constants', content: 'Two arbitrary constants A and B match the order-2 DE. This IS the general solution.' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 2 — CLASSIFICATION
-  // ═══════════════════════════════════════════════════════════════════
-  {
-    slug: 'classification',
-    title: 'Classification of Differential Equations',
-    order: 2,
-    summary: 'DEs are classified by type (ODE/PDE), order, degree, and linearity.',
-    sections: [
-      {
-        title: 'ODE vs PDE',
-        body: 'An **ODE** (Ordinary DE) involves derivatives with respect to **one** independent variable.\nA **PDE** (Partial DE) involves partial derivatives with respect to **two or more** independent variables.\n\nYour 2nd semester covers ODEs exclusively.',
-        sideNote: 'PDEs appear in heat flow, wave propagation, and quantum mechanics. ODEs appear whenever you track one variable over time — growth, decay, oscillation, circuits.',
-        cards: [
-          { title: 'ODE (your focus)', content: '$$\\frac{dy}{dx} + 2y = x$$' },
-          { title: 'PDE (later semesters)', content: '$$\\frac{\\partial u}{\\partial t} = k\\frac{\\partial^2 u}{\\partial x^2}$$' },
-        ],
-        examples: [
-          {
-            label: 'Example 1',
-            difficulty: 'easy',
-            problem: 'Identify whether each equation is an ODE or PDE:\n(a) $\\frac{dy}{dx} + y = 0$ (b) $\\frac{\\partial^2 u}{\\partial x^2} + \\frac{\\partial^2 u}{\\partial y^2} = 0$',
-            steps: [
-              { label: 'Equation (a)', content: 'Only one variable x, derivative $\\frac{dy}{dx}$ → **ODE**' },
-              { label: 'Equation (b)', content: 'Two independent variables x and y, partial derivatives → **PDE** (Laplace equation)' },
-            ],
-          },
-        ],
       },
       {
         title: 'Order and Degree',
-        body: '**Order** = the order of the highest derivative present.\n**Degree** = the power of the highest-order derivative, after clearing all radicals and fractions from the derivatives.',
-        sideNote: 'Always clear fractions and radicals from the derivative terms before reading off the degree. Example: $\\sqrt{y\'\'} = x$ has degree 2, not 1, because squaring gives $(y\'\')^2 = x^2$.',
-        table: {
-          headers: ['Equation', 'Order', 'Degree', 'Why'],
-          rows: [
-            ['$\\frac{dy}{dx} + y = e^x$', '1', '1', 'Highest derivative is $y\'$, raised to power 1'],
-            ['$\\frac{d^2y}{dx^2} + 3\\frac{dy}{dx} = 0$', '2', '1', 'Highest derivative is $y\'\'$, power 1'],
-            ['$\\left(\\frac{d^2y}{dx^2}\\right)^3 + y = 0$', '2', '3', 'Highest derivative $y\'\'$ raised to power 3'],
-            ['$\\sqrt{\\frac{dy}{dx}} = 1 + x$', '1', '2', 'After squaring: $(y\')^2 = (1+x)^2$'],
-          ],
-        },
+        body: '**Order** = the highest derivative that appears in the equation.\n- If the highest derivative is $dy/dx$, the order is 1.\n- If the highest derivative is $d^2y/dx^2$, the order is 2.\n- If the highest derivative is $d^3y/dx^3$, the order is 3.\n\n**Degree** = the power (exponent) of that highest-order derivative, BUT only after you have removed all roots and fractions from the derivative terms.\n\nImportant: If the equation contains $\\sin(dy/dx)$ or $e^{dy/dx}$ or $\\log(dy/dx)$, the degree is **not defined** because these are transcendental functions of the derivative.',
+        sideNote: 'Always remove radicals and fractions from derivative terms FIRST, then read the degree. The degree of lower-order derivatives does not matter -- we only care about the highest-order derivative.',
         examples: [
           {
             label: 'Example 1',
             difficulty: 'easy',
-            problem: 'Find order and degree of $\\frac{d^3y}{dx^3} + x^2\\left(\\frac{dy}{dx}\\right)^4 + y = \\cos x$.',
+            problem: 'Find the order and degree of $\\frac{d^2y}{dx^2} + a^2 x = 0$.',
             steps: [
-              { label: 'Identify highest derivative', content: '$\\frac{d^3y}{dx^3}$ — this is a 3rd derivative → **Order = 3**' },
-              { label: 'Find its power', content: 'The 3rd derivative appears to the power 1 (no exponent) → **Degree = 1**' },
-              { label: 'Note', content: 'The $(y\')^4$ term does not affect order or degree — only the highest derivative matters.' },
+              { label: 'Identify highest derivative', content: 'The highest derivative is $\\frac{d^2y}{dx^2}$, a second derivative.' },
+              { label: 'Read the order', content: 'Order = 2.' },
+              { label: 'Read the degree', content: 'The power of $\\frac{d^2y}{dx^2}$ is 1. Degree = 1.' },
             ],
           },
           {
             label: 'Example 2',
             difficulty: 'medium',
-            problem: 'Find order and degree of $\\left[1 + \\left(\\frac{dy}{dx}\\right)^2\\right]^{3/2} = \\frac{d^2y}{dx^2}$.',
+            problem: 'Find the order and degree of $\\left[1 + \\left(\\frac{dy}{dx}\\right)^2\\right]^{3/2} = \\frac{d^2y}{dx^2}$.',
             steps: [
-              { label: 'Identify highest derivative', content: '$\\frac{d^2y}{dx^2}$ → **Order = 2**' },
-              { label: 'Clear the fractional power', content: 'Square both sides: $\\left[1 + (y\')^2\\right]^3 = (y\'\')^2$' },
-              { label: 'Read off degree', content: 'Now highest derivative $y\'\'$ is raised to power 2 → **Degree = 2**' },
-            ],
-          },
-        ],
-      },
-      {
-        title: 'Linear vs Non-Linear',
-        body: 'A DE is **linear** when:\n- The unknown function y and all its derivatives appear to the **first power** only\n- There are **no products** between y and any of its derivatives\n- The coefficients may be any function of x\n\nViolate any condition → **non-linear**.',
-        sideNote: 'Linearity is crucial because linear DEs have much more powerful solution techniques. The superposition principle holds: if $y_1$ and $y_2$ are solutions, so is $c_1 y_1 + c_2 y_2$.',
-        cards: [
-          { title: 'Linear ✓', content: '$$\\frac{dy}{dx} + 2y = x^2$$\n$$\\frac{d^2y}{dx^2} - 3y = \\sin x$$' },
-          { title: 'Non-linear ✗', content: '$$y\\frac{dy}{dx} = x$$\n$$\\left(\\frac{dy}{dx}\\right)^2 = 1 - y^2$$' },
-        ],
-        examples: [
-          {
-            label: 'Example 1',
-            difficulty: 'easy',
-            problem: 'Classify each as linear or non-linear:\n(a) $y\'\' + xy\' - y = e^x$\n(b) $yy\' + x = 0$\n(c) $(y\')^2 + y = 0$',
-            steps: [
-              { label: 'Equation (a)', content: '$y\'\'$, $y\'$, and $y$ all appear to power 1, no products → **Linear**' },
-              { label: 'Equation (b)', content: '$y \\cdot y\'$ is a product of the function and its derivative → **Non-linear**' },
-              { label: 'Equation (c)', content: '$(y\')^2$ means $y\'$ raised to power 2 → **Non-linear**' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 3 — FORMATION
-  // ═══════════════════════════════════════════════════════════════════
-  {
-    slug: 'formation',
-    title: 'Formation of Differential Equations',
-    order: 3,
-    summary: 'n arbitrary constants → differentiate n times → eliminate constants → DE of order n.',
-    sections: [
-      {
-        title: 'The Formation Rule',
-        body: 'Every family of curves defined by n arbitrary constants gives rise to exactly one DE of order n. To find that DE:\n\n**Step 1:** Write the equation of the family (with n constants)\n**Step 2:** Differentiate n times to get n extra equations\n**Step 3:** Eliminate all n constants between the original and the n derivative equations\n**Step 4:** The result is the DE',
-        sideNote: 'Think of it in reverse: a DE of order n has a general solution with n constants. Formation just goes the other direction — from the family of solutions to the DE that generates them.',
-        examples: [
-          {
-            label: 'Example 1 — One constant',
-            difficulty: 'easy',
-            problem: 'Form the DE from $y = Cx^2$ (C is arbitrary).',
-            steps: [
-              { label: 'Count constants', content: 'One constant C → will need to differentiate once' },
-              { label: 'Differentiate', content: '$\\frac{dy}{dx} = 2Cx$' },
-              { label: 'Find C from original', content: 'From $y = Cx^2$: $C = \\frac{y}{x^2}$' },
-              { label: 'Substitute C', content: '$\\frac{dy}{dx} = 2\\left(\\frac{y}{x^2}\\right)x = \\frac{2y}{x}$' },
-              { label: 'DE', content: '$$x\\frac{dy}{dx} - 2y = 0$$' },
+              { label: 'Highest derivative', content: '$\\frac{d^2y}{dx^2}$ appears, so Order = 2.' },
+              { label: 'Remove the fractional power', content: 'Square both sides: $\\left[1 + (dy/dx)^2\\right]^3 = (d^2y/dx^2)^2$' },
+              { label: 'Read degree', content: 'Now $d^2y/dx^2$ has power 2. Degree = 2.' },
             ],
           },
           {
-            label: 'Example 2 — Two constants',
-            difficulty: 'medium',
-            problem: 'Form the DE from $y = Ae^x + Be^{-x}$ (A, B arbitrary).',
-            steps: [
-              { label: 'Two constants → differentiate twice', content: '$y = Ae^x + Be^{-x}$' },
-              { label: '1st derivative', content: '$y\' = Ae^x - Be^{-x}$' },
-              { label: '2nd derivative', content: '$y\'\' = Ae^x + Be^{-x}$' },
-              { label: 'Observe that y\'\' = y', content: '$Ae^x + Be^{-x} = y$ ✓' },
-              { label: 'DE', content: '$$y\'\' - y = 0$$' },
-            ],
-          },
-          {
-            label: 'Example 3 — Circle family',
-            difficulty: 'medium',
-            problem: 'Form the DE for all circles centred at the origin: $x^2 + y^2 = r^2$.',
-            steps: [
-              { label: 'One constant (r)', content: '$x^2 + y^2 = r^2$' },
-              { label: 'Differentiate implicitly', content: '$2x + 2y\\frac{dy}{dx} = 0$' },
-              { label: 'Simplify', content: '$x + y\\frac{dy}{dx} = 0$' },
-              { label: 'DE', content: '$$x + yy\' = 0$$' },
-              { label: 'Geometric meaning', content: 'This says: at any point on the circle, the slope $y\'$ satisfies $y\' = -x/y$ (tangent is perpendicular to radius).' },
-            ],
-          },
-          {
-            label: 'Example 4 — Trigonometric family',
+            label: 'Example 3',
             difficulty: 'hard',
-            problem: 'Form the DE from $y = A\\sin(bx) + B\\cos(bx)$ where b is a given constant.',
+            problem: 'Find the order and degree of $x^2(d^2y/dx^2)^3 + y(dy/dx)^4 + y^4 = 0$.',
             steps: [
-              { label: '1st derivative', content: '$y\' = Ab\\cos(bx) - Bb\\sin(bx)$' },
-              { label: '2nd derivative', content: '$y\'\' = -Ab^2\\sin(bx) - Bb^2\\cos(bx) = -b^2(A\\sin(bx) + B\\cos(bx))$' },
-              { label: 'Recognise y', content: '$y\'\' = -b^2 y$' },
-              { label: 'DE', content: '$$y\'\' + b^2 y = 0$$' },
+              { label: 'Highest derivative', content: '$d^2y/dx^2$ is present, so Order = 2.' },
+              { label: 'Power of highest derivative', content: 'It is raised to the third power.' },
+              { label: 'Degree', content: 'Degree = 3. Note: $(dy/dx)^4$ has lower order so it does not determine the degree.' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Formation of Differential Equations',
+        body: 'If a relation between $x$ and $y$ contains arbitrary constants, we can form a DE by:\n1. Differentiating the relation as many times as there are constants\n2. Eliminating all the constants\n\nThe number of arbitrary constants = the order of the resulting DE.',
+        sideNote: 'When we write $(dy/dx)^2$, it means "square the entire derivative," not $d^2y/dx^2$. These are completely different things!',
+        examples: [
+          {
+            label: 'Example 1 (Easy)',
+            difficulty: 'easy',
+            problem: 'Form the DE from $y = Ax + A^2$.',
+            steps: [
+              { label: 'Count constants', content: 'One constant $A$, so differentiate once.' },
+              { label: 'Differentiate', content: '$dy/dx = A$, so $A = dy/dx$.' },
+              { label: 'Substitute back', content: '$y = (dy/dx) \\cdot x + (dy/dx)^2$' },
+              { label: 'Result', content: 'First-order DE (one constant eliminated). This is Clairaut\'s equation form.' },
+            ],
+          },
+          {
+            label: 'Example 2 (Medium)',
+            difficulty: 'medium',
+            problem: 'Form the DE from $y = A\\cos x + B\\sin x$.',
+            steps: [
+              { label: 'Count constants', content: 'Two constants ($A, B$), so differentiate twice.' },
+              { label: 'First differentiation', content: '$dy/dx = -A\\sin x + B\\cos x$' },
+              { label: 'Second differentiation', content: '$d^2y/dx^2 = -A\\cos x - B\\sin x$' },
+              { label: 'Key observation', content: '$d^2y/dx^2 = -(A\\cos x + B\\sin x) = -y$' },
+              { label: 'Final DE', content: '$$d^2y/dx^2 + y = 0$$' },
+            ],
+          },
+          {
+            label: 'Example 3 (Hard)',
+            difficulty: 'hard',
+            problem: 'Obtain the DE of which $y^2 = 4a(x + a)$ is a solution.',
+            steps: [
+              { label: 'Setup', content: 'One constant ($a$), differentiate once. But $a$ appears nonlinearly.' },
+              { label: 'Expand and differentiate', content: '$y^2 = 4ax + 4a^2$. Differentiating: $2yy\' = 4a$, so $a = yy\'/2$.' },
+              { label: 'Substitute back', content: '$y^2 = 4(yy\'/2)x + 4(yy\'/2)^2 = 2xyy\' + y^2(y\')^2$' },
+              { label: 'Final DE', content: '$$y^2(y\')^2 + 2xyy\' - y^2 = 0$$' },
             ],
           },
         ],
@@ -265,78 +126,66 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 4 — VARIABLE SEPARABLE
-  // ═══════════════════════════════════════════════════════════════════
+  // =====================================================================
+  // CH 2 -- VARIABLES SEPARABLE METHOD
+  // =====================================================================
   {
     slug: 'separable',
-    title: 'Variable Separable Method',
-    order: 4,
-    summary: 'Rearrange so all y terms go left, all x terms go right, then integrate both sides.',
+    title: 'Variables Separable Method',
+    order: 2,
+    ref: 'H.K. Dass 3.6',
+    summary: 'If you can rearrange a first-order DE so that all y terms (including dy) are on one side and all x terms (including dx) are on the other, just integrate both sides.',
     sections: [
       {
-        title: 'The Separable Method',
-        body: 'A DE is **variable separable** if it can be written as:\n$$g(y)\\,dy = f(x)\\,dx$$\nOnce separated, integrate both sides independently:\n$$\\int g(y)\\,dy = \\int f(x)\\,dx + C$$\n\n**When can we separate?** When $\\frac{dy}{dx}$ can be written as a product $h(x) \\cdot k(y)$ — then divide both sides by $k(y)$ and multiply by $dx$.',
-        sideNote: 'The constant C only needs to appear on one side. Whether you write $C$, $2C$, or $\\ln C$ depends on which form gives the cleanest answer.',
+        title: 'What is this method?',
+        body: 'If you can rearrange a first-order DE so that:\n- ALL the $y$ stuff (including $dy$) is on one side\n- ALL the $x$ stuff (including $dx$) is on the other side\n\nthen you have "separated the variables." Just integrate both sides.\n\n**Working Rule:**\n1. Rearrange: $f(y)\\,dy = g(x)\\,dx$\n2. Integrate both sides: $\\int f(y)\\,dy = \\int g(x)\\,dx$\n3. Add constant $C$ on one side.',
+        sideNote: '$\\int \\frac{1}{1+t^2}\\,dt = \\tan^{-1}(t)$ and $\\int \\frac{1}{\\sqrt{1-t^2}}\\,dt = \\sin^{-1}(t)$ are standard formulae you should memorize.',
+      },
+      {
+        title: 'Direct Separation and Substitution Type',
+        body: 'Sometimes variables cannot be separated directly. Common substitutions:\n- If $(x + y)$ appears: put $z = x + y$\n- If $(ax + by + c)$ appears: put $z = ax + by + c$\n\nAfter substitution, the new equation in $z$ becomes separable.',
         examples: [
           {
-            label: 'Example 1',
+            label: 'Example 1 (Easy)',
             difficulty: 'easy',
-            problem: 'Solve $\\frac{dy}{dx} = \\frac{x}{y}$.',
-            steps: [
-              { label: 'Rewrite to see the product form', content: '$\\frac{dy}{dx} = x \\cdot \\frac{1}{y}$ — separable since it\'s $h(x) \\cdot k(y)$' },
-              { label: 'Separate variables', content: 'Multiply both sides by $y$, multiply by $dx$: $\\quad y\\,dy = x\\,dx$' },
-              { label: 'Integrate left side', content: '$\\int y\\,dy = \\frac{y^2}{2}$' },
-              { label: 'Integrate right side', content: '$\\int x\\,dx = \\frac{x^2}{2}$' },
-              { label: 'Combine (absorb 2 into C)', content: '$$y^2 - x^2 = C$$' },
-            ],
-          },
-          {
-            label: 'Example 2',
-            difficulty: 'easy',
-            problem: 'Solve $\\frac{dy}{dx} = y$.',
-            steps: [
-              { label: 'Separate', content: '$\\frac{dy}{y} = dx$' },
-              { label: 'Integrate both sides', content: '$\\int \\frac{1}{y}\\,dy = \\int dx$' },
-              { label: 'Evaluate integrals', content: '$\\ln|y| = x + C_1$' },
-              { label: 'Exponentiate both sides', content: '$|y| = e^{x+C_1} = e^{C_1} \\cdot e^x$' },
-              { label: 'Write with single constant C = ±e^{C₁}', content: '$$y = Ce^x$$' },
-            ],
-          },
-          {
-            label: 'Example 3 — With initial condition',
-            difficulty: 'medium',
-            problem: 'Solve $\\frac{dy}{dx} = -2xy^2$, given $y(0) = 2$.',
-            steps: [
-              { label: 'Separate (divide by y², multiply by dx)', content: '$y^{-2}\\,dy = -2x\\,dx$' },
-              { label: 'Integrate left side', content: '$\\int y^{-2}\\,dy = \\frac{y^{-1}}{-1} = -\\frac{1}{y}$' },
-              { label: 'Integrate right side', content: '$\\int -2x\\,dx = -x^2$' },
-              { label: 'Combine', content: '$-\\frac{1}{y} = -x^2 + C \\Rightarrow \\frac{1}{y} = x^2 - C$' },
-              { label: 'Apply y(0) = 2', content: '$\\frac{1}{2} = 0 - C \\Rightarrow C = -\\frac{1}{2}$' },
-              { label: 'Particular solution', content: '$$y = \\frac{2}{2x^2 + 1}$$' },
-            ],
-          },
-          {
-            label: 'Example 4',
-            difficulty: 'medium',
             problem: 'Solve $\\frac{dy}{dx} = \\frac{1+y^2}{1+x^2}$.',
             steps: [
-              { label: 'Separate', content: '$\\frac{dy}{1+y^2} = \\frac{dx}{1+x^2}$' },
-              { label: 'Integrate left side', content: '$\\int \\frac{dy}{1+y^2} = \\arctan y$' },
-              { label: 'Integrate right side', content: '$\\int \\frac{dx}{1+x^2} = \\arctan x$' },
-              { label: 'General solution', content: '$$\\arctan y = \\arctan x + C$$' },
+              { label: 'Separate variables', content: '$\\frac{dy}{1+y^2} = \\frac{dx}{1+x^2}$' },
+              { label: 'Integrate both sides', content: '$\\tan^{-1}(y) = \\tan^{-1}(x) + C$' },
+              { label: 'Final answer', content: '$$\\tan^{-1}(y) - \\tan^{-1}(x) = C$$' },
             ],
           },
           {
-            label: 'Example 5',
-            difficulty: 'hard',
-            problem: 'Solve $e^x \\tan y\\,dx + (1-e^x)\\sec^2 y\\,dy = 0$.',
+            label: 'Example 2 (Medium)',
+            difficulty: 'medium',
+            problem: 'Solve $\\frac{dy}{dx} = \\frac{x(2\\log x + 1)}{\\sin y + y\\cos y}$.',
             steps: [
-              { label: 'Rearrange', content: '$(1-e^x)\\sec^2 y\\,dy = -e^x\\tan y\\,dx$' },
-              { label: 'Separate (divide by tan y · (1-eˣ))', content: '$\\frac{\\sec^2 y}{\\tan y}\\,dy = \\frac{-e^x}{1-e^x}\\,dx$' },
-              { label: 'Integrate left side (substitute t = tan y)', content: '$\\int \\frac{\\sec^2 y}{\\tan y}\\,dy = \\ln|\\tan y|$' },
-              { label: 'Integrate right side (substitute u = 1-eˣ)', content: '$\\int \\frac{-e^x}{1-e^x}\\,dx = \\ln|1-e^x|$' },
-              { label: 'General solution', content: '$$\\ln|\\tan y| = \\ln|1-e^x| + \\ln C \\Rightarrow \\tan y = C(1-e^x)$$' },
+              { label: 'Separate', content: '$(\\sin y + y\\cos y)\\,dy = x(2\\log x + 1)\\,dx$' },
+              { label: 'Integrate left side', content: 'Using integration by parts on $\\int y\\cos y\\,dy$: result is $y\\sin y$.' },
+              { label: 'Integrate right side', content: 'The terms cancel beautifully to give $x^2\\log x$.' },
+              { label: 'Final answer', content: '$$y\\sin y = x^2\\log x + C$$' },
+            ],
+          },
+          {
+            label: 'Example 3 (Substitution)',
+            difficulty: 'medium',
+            problem: 'Solve $\\cos(x+y)\\,dy = dx$.',
+            steps: [
+              { label: 'Rewrite', content: '$dy/dx = \\sec(x+y)$. Not directly separable.' },
+              { label: 'Substitute z = x + y', content: '$dz/dx = 1 + dy/dx = 1 + \\sec z$.' },
+              { label: 'Separate and integrate', content: 'Using half-angle identities: $z - \\tan(z/2) = x + C$.' },
+              { label: 'Substitute back', content: '$$y - \\tan\\frac{x+y}{2} = C$$' },
+            ],
+          },
+          {
+            label: 'Example 4 (Hard)',
+            difficulty: 'hard',
+            problem: 'Solve $(2x^2+3y^2-7)x\\,dx - (3x^2+2y^2-8)y\\,dy = 0$.',
+            steps: [
+              { label: 'Rearrange ratio', content: '$\\frac{x\\,dx}{y\\,dy} = \\frac{3x^2+2y^2-8}{2x^2+3y^2-7}$' },
+              { label: 'Apply componendo-dividendo', content: 'Recognize exact differentials $d(x^2+y^2)$ and $d(x^2-y^2)$.' },
+              { label: 'Integrate', content: '$\\ln|x^2+y^2-3| = 5\\ln|x^2-y^2-1| + \\ln C$' },
+              { label: 'Final answer', content: '$$x^2 + y^2 - 3 = C(x^2 - y^2 - 1)^5$$' },
             ],
           },
         ],
@@ -344,133 +193,194 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 5 — HOMOGENEOUS
-  // ═══════════════════════════════════════════════════════════════════
+  // =====================================================================
+  // CH 3 -- HOMOGENEOUS DIFFERENTIAL EQUATIONS
+  // =====================================================================
   {
     slug: 'homogeneous',
-    title: 'Homogeneous Equations',
-    order: 5,
-    summary: 'A DE is homogeneous if f(x,y) depends only on y/x. Substitute v = y/x to convert to separable.',
+    title: 'Homogeneous Differential Equations',
+    order: 3,
+    ref: 'H.K. Dass 3.7',
+    summary: 'A DE dy/dx = f(x,y)/g(x,y) is homogeneous if f and g are homogeneous functions of the same degree. Substitute y = vx to convert it into a separable equation.',
     sections: [
       {
-        title: 'The Homogeneous Substitution',
-        body: 'A DE $\\frac{dy}{dx} = f(x,y)$ is **homogeneous** if $f(tx, ty) = f(x,y)$ for all t — equivalently, if f can be written as a function of $y/x$ alone.\n\n**Substitution:** Let $v = \\frac{y}{x}$, so $y = vx$ and differentiating:\n$$\\frac{dy}{dx} = v + x\\frac{dv}{dx}$$\nSubstitute these into the DE. The result is always a **separable** DE in v and x. Solve for v, then back-substitute $v = y/x$.',
-        sideNote: 'How to check if a DE is homogeneous: try to express $\\frac{dy}{dx}$ purely as a function of $\\frac{y}{x}$. If you can, substitute $v = y/x$.',
+        title: 'What is a Homogeneous DE?',
+        body: 'A DE of the form $\\frac{dy}{dx} = \\frac{f(x,y)}{g(x,y)}$ is called **homogeneous** if both $f$ and $g$ are homogeneous functions of the **same degree**.\n\n**Quick test:** Replace every $x$ with $tx$ and every $y$ with $ty$. If all the $t$\'s cancel out, it is homogeneous.\n\n**Solving method: Put $y = vx$** (where $v$ is a new function of $x$).\nThen: $dy/dx = v + x(dv/dx)$.\n\nThis substitution ALWAYS converts a homogeneous DE into a separable one. After solving, replace $v = y/x$.',
+        sideNote: 'If $y = vx$ makes the algebra ugly, try $x = vy$ instead. Choose whichever makes the separation cleaner.',
+        examples: [
+          {
+            label: 'Example 1 (Easy)',
+            difficulty: 'easy',
+            problem: 'Solve $(x^2-y^2)\\,dx + 2xy\\,dy = 0$.',
+            steps: [
+              { label: 'Write in dy/dx form', content: '$dy/dx = (y^2-x^2)/(2xy)$. Degree 2 each. Homogeneous.' },
+              { label: 'Put y = vx', content: '$v + x(dv/dx) = (v^2-1)/(2v)$' },
+              { label: 'Isolate and separate', content: '$x(dv/dx) = -(v^2+1)/(2v)$, so $2v/(v^2+1)\\,dv = -dx/x$.' },
+              { label: 'Integrate', content: '$\\ln(v^2+1) = -\\ln|x| + \\ln C$' },
+              { label: 'Replace v = y/x', content: '$$x^2 + y^2 = Cx$$' },
+            ],
+          },
+          {
+            label: 'Example 2 (Medium)',
+            difficulty: 'medium',
+            problem: 'Solve $\\frac{dy}{dx} = \\frac{y}{x} + \\sin\\frac{y}{x}$.',
+            steps: [
+              { label: 'Put y = vx', content: '$v + x(dv/dx) = v + \\sin v$, so $x(dv/dx) = \\sin v$.' },
+              { label: 'Separate', content: '$\\csc v\\,dv = dx/x$' },
+              { label: 'Integrate and replace v = y/x', content: '$$\\ln|\\tan(y/(2x))| = \\ln|x| + C$$' },
+            ],
+          },
+          {
+            label: 'Example 3 (Hard -- using x = vy)',
+            difficulty: 'hard',
+            problem: 'Solve $(x^2+y^2)\\,dy = xy\\,dx$.',
+            steps: [
+              { label: 'Try x = vy', content: '$dx/dy = (x^2+y^2)/(xy)$. Put $x = vy$.' },
+              { label: 'Substitute', content: '$v + y(dv/dy) = (v^2+1)/v$, so $y(dv/dy) = 1/v$.' },
+              { label: 'Separate and integrate', content: '$v\\,dv = dy/y$, giving $v^2/2 = \\ln|y| + C$.' },
+              { label: 'Replace v = x/y', content: '$$x^2 = 2y^2\\ln|y| + Cy^2$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 4 -- EQUATIONS REDUCIBLE TO HOMOGENEOUS FORM
+  // =====================================================================
+  {
+    slug: 'reducible-homogeneous',
+    title: 'Equations Reducible to Homogeneous Form',
+    order: 4,
+    ref: 'H.K. Dass 3.8',
+    summary: 'Equations like dy/dx = (ax+by+c)/(Ax+By+C) look almost homogeneous, but constants c and C spoil things. A coordinate shift or substitution fixes this.',
+    sections: [
+      {
+        title: 'Two Cases',
+        body: '**Case I: $a/A \\neq b/B$**\nSubstitute $x = X + h$, $y = Y + k$. Choose $h, k$ so that $ah + bk + c = 0$ and $Ah + Bk + C = 0$. This removes the constants, giving a homogeneous equation.\n\n**Case II: $a/A = b/B$** (the "failure" case)\nThe above fails because $h, k$ become infinite. Put $z = ax + by$ and use separation of variables.',
+        sideNote: 'Case II occurs when the two lines are parallel. Since parallel lines never intersect, we cannot find a finite $(h, k)$.',
+        examples: [
+          {
+            label: 'Example 1 (Case I)',
+            difficulty: 'medium',
+            problem: 'Solve $\\frac{dy}{dx} = \\frac{x+2y-3}{2x+y-3}$.',
+            steps: [
+              { label: 'Check', content: '$a/A = 1/2 \\neq 2/1 = b/B$. Case I.' },
+              { label: 'Find h, k', content: 'Solving: $h = 1, k = 1$. Put $X = x-1, Y = y-1$.' },
+              { label: 'Homogeneous equation', content: '$dY/dX = (X+2Y)/(2X+Y)$. Put $Y = vX$, use partial fractions.' },
+              { label: 'Final answer', content: '$$x + y - 2 = a(x - y)^3$$' },
+            ],
+          },
+          {
+            label: 'Example 2 (Case II)',
+            difficulty: 'medium',
+            problem: 'Solve $(x + 2y)(dx - dy) = dx + dy$.',
+            steps: [
+              { label: 'Rewrite', content: '$dy/dx = (x+2y-1)/(x+2y+1)$. Here $a/A = b/B = 1$. Case II.' },
+              { label: 'Put z = x + 2y', content: '$dz/dx = (3z-1)/(z+1)$.' },
+              { label: 'Separate and integrate', content: '$\\frac{z+1}{3z-1}\\,dz = dx$.' },
+              { label: 'Final answer', content: '$$3x - 3y + a = 2\\log(3x + 6y - 1)$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 5 -- LINEAR DEs OF FIRST ORDER
+  // =====================================================================
+  {
+    slug: 'linear-first-order',
+    title: 'Linear Differential Equations of First Order',
+    order: 5,
+    ref: 'H.K. Dass 3.9',
+    summary: 'A first-order linear DE has the form dy/dx + P(x)y = Q(x). Multiply by the integrating factor e^(integral P dx) and the left side becomes an exact derivative.',
+    sections: [
+      {
+        title: 'The Standard Form and I.F. Method',
+        body: 'A first-order linear DE:\n$$\\frac{dy}{dx} + P(x) \\cdot y = Q(x)$$\n\n**Step 1:** Compute the Integrating Factor: I.F. $= e^{\\int P\\,dx}$\n\n**Step 2:** Solution: $y \\cdot (\\text{I.F.}) = \\int Q \\cdot (\\text{I.F.})\\,dx + C$\n\nMultiplying by I.F. makes the left side become $\\frac{d}{dx}[y \\cdot \\text{I.F.}]$, which integrates directly.',
+        sideNote: '$e^{\\ln(\\text{something})} = \\text{something}$. This is the most common trick in finding I.F.',
+        examples: [
+          {
+            label: 'Example 1 (Easy)',
+            difficulty: 'easy',
+            problem: 'Solve $\\frac{dy}{dx} + \\frac{1}{x}y = x^3 - 3$.',
+            steps: [
+              { label: 'I.F.', content: '$e^{\\int dx/x} = e^{\\ln x} = x$' },
+              { label: 'Apply formula', content: '$xy = \\int (x^4 - 3x)\\,dx + C$' },
+              { label: 'Answer', content: '$$xy = x^5/5 - 3x^2/2 + C$$' },
+            ],
+          },
+          {
+            label: 'Example 2 (Medium)',
+            difficulty: 'medium',
+            problem: 'Solve $x\\log x \\cdot \\frac{dy}{dx} + y = 2\\log x$.',
+            steps: [
+              { label: 'Standard form', content: '$dy/dx + y/(x\\log x) = 2/x$.' },
+              { label: 'I.F.', content: '$e^{\\int dx/(x\\log x)} = e^{\\ln(\\log x)} = \\log x$' },
+              { label: 'Answer', content: '$$y\\log x = (\\log x)^2 + C$$' },
+            ],
+          },
+          {
+            label: 'Example 3 (Linear in x)',
+            difficulty: 'hard',
+            problem: 'Solve $(1+y^2)\\,dx = (\\tan^{-1}y - x)\\,dy$.',
+            steps: [
+              { label: 'Rewrite', content: '$dx/dy + x/(1+y^2) = \\tan^{-1}y/(1+y^2)$. Linear in $x$.' },
+              { label: 'I.F.', content: '$e^{\\tan^{-1}y}$' },
+              { label: 'Evaluate RHS by substitution', content: 'Put $t = \\tan^{-1}y$. RHS becomes $\\int te^t\\,dt = te^t - e^t$.' },
+              { label: 'Answer', content: '$$x = (\\tan^{-1}y - 1) + Ce^{-\\tan^{-1}y}$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 6 -- BERNOULLI EQUATIONS
+  // =====================================================================
+  {
+    slug: 'bernoulli',
+    title: 'Bernoulli Equations',
+    order: 6,
+    ref: 'H.K. Dass 3.10',
+    summary: 'A Bernoulli equation has the form dy/dx + Py = Qy^n. Divide by y^n, substitute z = y^(1-n) to convert it into a linear equation.',
+    sections: [
+      {
+        title: 'The Bernoulli Reduction',
+        body: 'The form: $\\frac{dy}{dx} + Py = Qy^n$ where $n \\neq 0, 1$.\n\n**Method:**\n1. Divide by $y^n$\n2. Let $z = y^{1-n}$\n3. Equation becomes linear: $\\frac{dz}{dx} + (1-n)Pz = (1-n)Q$\n4. Solve using I.F. method\n5. Recover $y$ from $z = y^{1-n}$.',
         examples: [
           {
             label: 'Example 1',
-            difficulty: 'medium',
-            problem: 'Solve $\\frac{dy}{dx} = \\frac{y^2 - x^2}{2xy}$.',
+            difficulty: 'easy',
+            problem: 'Solve $x^2\\,dy + y(x+y)\\,dx = 0$.',
             steps: [
-              { label: 'Verify homogeneous', content: 'Divide top and bottom by $x^2$: $\\frac{dy}{dx} = \\frac{(y/x)^2 - 1}{2(y/x)}$ — yes, it\'s a function of $v = y/x$' },
-              { label: 'Substitute y = vx, dy/dx = v + xv\'', content: '$v + x\\frac{dv}{dx} = \\frac{v^2-1}{2v}$' },
-              { label: 'Isolate xv\'', content: '$x\\frac{dv}{dx} = \\frac{v^2-1}{2v} - v = \\frac{v^2-1-2v^2}{2v} = \\frac{-(v^2+1)}{2v}$' },
-              { label: 'Separate', content: '$\\frac{2v}{v^2+1}\\,dv = -\\frac{dx}{x}$' },
-              { label: 'Integrate both sides', content: '$\\int \\frac{2v}{v^2+1}\\,dv = \\ln(v^2+1)$ and $\\int -\\frac{dx}{x} = -\\ln|x|$' },
-              { label: 'Combine', content: '$\\ln(v^2+1) = -\\ln|x| + \\ln C = \\ln\\frac{C}{|x|}$' },
-              { label: 'Back-substitute v = y/x', content: '$\\frac{y^2}{x^2}+1 = \\frac{C}{x}$, so $x^2+y^2 = Cx$' },
-              { label: 'General solution', content: '$$x^2 + y^2 = Cx$$' },
+              { label: 'Rewrite', content: '$dy/dx + y/x = -y^2/x^2$. Bernoulli with $n = 2$.' },
+              { label: 'Divide by y^2, put z = 1/y', content: '$dz/dx - z/x = 1/x^2$. I.F. $= 1/x$.' },
+              { label: 'Answer', content: '$$1/(xy) = C - 1/(2x^2)$$' },
             ],
           },
           {
             label: 'Example 2',
-            difficulty: 'easy',
-            problem: 'Solve $x\\frac{dy}{dx} = y + x$.',
-            steps: [
-              { label: 'Write as dy/dx', content: '$\\frac{dy}{dx} = \\frac{y}{x} + 1$ — function of $v = y/x$' },
-              { label: 'Substitute y = vx', content: '$v + x\\frac{dv}{dx} = v + 1$' },
-              { label: 'Simplify', content: '$x\\frac{dv}{dx} = 1$' },
-              { label: 'Separate', content: '$dv = \\frac{dx}{x}$' },
-              { label: 'Integrate', content: '$v = \\ln|x| + C$' },
-              { label: 'Back-substitute v = y/x', content: '$$y = x(\\ln|x| + C) = x\\ln|x| + Cx$$' },
-            ],
-          },
-          {
-            label: 'Example 3',
-            difficulty: 'hard',
-            problem: 'Solve $(x+y)\\,dx - (x-y)\\,dy = 0$.',
-            steps: [
-              { label: 'Write as dy/dx', content: '$\\frac{dy}{dx} = \\frac{x+y}{x-y}$' },
-              { label: 'Divide by x to see v = y/x form', content: '$\\frac{dy}{dx} = \\frac{1 + y/x}{1 - y/x} = \\frac{1+v}{1-v}$' },
-              { label: 'Substitute', content: '$v + x\\frac{dv}{dx} = \\frac{1+v}{1-v}$' },
-              { label: 'Simplify xv\'', content: '$x\\frac{dv}{dx} = \\frac{1+v}{1-v} - v = \\frac{1+v - v(1-v)}{1-v} = \\frac{1+v^2}{1-v}$' },
-              { label: 'Separate', content: '$\\frac{1-v}{1+v^2}\\,dv = \\frac{dx}{x}$' },
-              { label: 'Split left side', content: '$\\frac{1}{1+v^2}\\,dv - \\frac{v}{1+v^2}\\,dv = \\frac{dx}{x}$' },
-              { label: 'Integrate', content: '$\\arctan v - \\frac{1}{2}\\ln(1+v^2) = \\ln|x| + C$' },
-              { label: 'Back-substitute v = y/x', content: '$$\\arctan\\frac{y}{x} = \\frac{1}{2}\\ln(x^2+y^2) + C$$' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 6 — LINEAR DE
-  // ═══════════════════════════════════════════════════════════════════
-  {
-    slug: 'linear-de',
-    title: 'Linear DE — Integrating Factor Method',
-    order: 6,
-    ref: 'H.K. Dass — Section 3.9, p.147',
-    summary: 'Standard form: dy/dx + P(x)y = Q(x). Multiply by integrating factor μ = e^(∫P dx).',
-    sections: [
-      {
-        title: 'Standard Form & Integrating Factor',
-        body: '**Standard form of a first-order linear DE:**\n$$\\frac{dy}{dx} + P(x)\\,y = Q(x)$$\nwhere P and Q are functions of x only.\n\n**Why multiply by e^{∫P dx}?**\nBecause the left side $\\frac{dy}{dx} + Py$ is almost — but not quite — a derivative of a product. Multiplying by $\\mu = e^{\\int P\\,dx}$ makes:\n$$\\mu\\frac{dy}{dx} + \\mu P y = \\frac{d}{dx}(\\mu y)$$\nSo the equation becomes $\\frac{d}{dx}(\\mu y) = \\mu Q$, which integrates directly.',
-        sideNote: 'When finding the integrating factor, drop the constant of integration — you only need one particular $\\mu$, not all of them.',
-        examples: [
-          {
-            label: 'Example 1 (H.K. Dass §3.9)',
-            difficulty: 'easy',
-            problem: 'Solve $\\frac{dy}{dx} + \\frac{y}{x} = x^2$.',
-            steps: [
-              { label: 'Standard form — identify P and Q', content: '$P(x) = \\frac{1}{x}$, $\\quad Q(x) = x^2$' },
-              { label: 'Compute ∫P dx', content: '$\\int \\frac{1}{x}\\,dx = \\ln x$' },
-              { label: 'Find I.F.', content: '$\\mu = e^{\\ln x} = x$' },
-              { label: 'Multiply DE by μ = x', content: '$x\\frac{dy}{dx} + y = x^3 \\Rightarrow \\frac{d}{dx}(xy) = x^3$' },
-              { label: 'Integrate both sides', content: '$xy = \\int x^3\\,dx = \\frac{x^4}{4} + C$' },
-              { label: 'Divide by x', content: '$$y = \\frac{x^3}{4} + \\frac{C}{x}$$' },
-            ],
-          },
-          {
-            label: 'Example 2 (H.K. Dass Ex.10)',
             difficulty: 'medium',
-            problem: 'Solve $(x+1)\\frac{dy}{dx} - y = e^x(x+1)^2$.',
+            problem: 'Solve $\\frac{dy}{dx} = y\\tan x - y^2\\sec x$.',
             steps: [
-              { label: 'Divide by (x+1) to get standard form', content: '$\\frac{dy}{dx} - \\frac{1}{x+1}y = e^x(x+1)$' },
-              { label: 'P = -1/(x+1), Q = eˣ(x+1)', content: '$\\int P\\,dx = -\\ln(x+1)$' },
-              { label: 'I.F.', content: '$\\mu = e^{-\\ln(x+1)} = \\frac{1}{x+1}$' },
-              { label: 'Multiply through', content: '$\\frac{d}{dx}\\left(\\frac{y}{x+1}\\right) = e^x$' },
-              { label: 'Integrate', content: '$\\frac{y}{x+1} = e^x + C$' },
-              { label: 'General solution', content: '$$y = (x+1)(e^x + C)$$' },
+              { label: 'Bernoulli', content: '$n = 2$. Divide by $y^2$, put $z = 1/y$.' },
+              { label: 'Linear equation', content: '$dz/dx + z\\tan x = \\sec x$. I.F. $= \\sec x$.' },
+              { label: 'Answer', content: '$$\\sec x = y(\\tan x + C)$$' },
             ],
           },
           {
             label: 'Example 3',
             difficulty: 'medium',
-            problem: 'Solve $\\frac{dy}{dx} + y = e^x$, with $y(0) = 1$.',
+            problem: 'Solve $\\tan y\\,\\frac{dy}{dx} + \\tan x = \\cos y\\cos^2 x$.',
             steps: [
-              { label: 'P = 1, Q = eˣ', content: '$\\int P\\,dx = x$' },
-              { label: 'I.F.', content: '$\\mu = e^x$' },
-              { label: 'Multiply through', content: '$e^x\\frac{dy}{dx} + e^xy = e^{2x} \\Rightarrow \\frac{d}{dx}(e^x y) = e^{2x}$' },
-              { label: 'Integrate', content: '$e^x y = \\int e^{2x}\\,dx = \\frac{e^{2x}}{2} + C$' },
-              { label: 'Divide by eˣ', content: '$y = \\frac{e^x}{2} + Ce^{-x}$' },
-              { label: 'Apply y(0) = 1', content: '$1 = \\frac{1}{2} + C \\Rightarrow C = \\frac{1}{2}$' },
-              { label: 'Particular solution', content: '$$y = \\frac{e^x + e^{-x}}{2} = \\cosh x$$' },
-            ],
-          },
-          {
-            label: 'Example 4',
-            difficulty: 'hard',
-            problem: 'Solve $\\frac{dy}{dx} + y\\tan x = \\sec x$.',
-            steps: [
-              { label: 'P = tan x, Q = sec x', content: '$\\int \\tan x\\,dx = \\ln|\\sec x|$' },
-              { label: 'I.F.', content: '$\\mu = e^{\\ln|\\sec x|} = \\sec x$' },
-              { label: 'Multiply through', content: '$\\sec x\\frac{dy}{dx} + y\\sec x\\tan x = \\sec^2 x \\Rightarrow \\frac{d}{dx}(y\\sec x) = \\sec^2 x$' },
-              { label: 'Integrate', content: '$y\\sec x = \\int \\sec^2 x\\,dx = \\tan x + C$' },
-              { label: 'General solution', content: '$$y = \\sin x + C\\cos x$$' },
+              { label: 'Multiply by sec y', content: '$\\sec y\\tan y\\,dy/dx + \\sec y\\tan x = \\cos^2 x$.' },
+              { label: 'Substitute z = sec y', content: '$dz/dx + z\\tan x = \\cos^2 x$. I.F. $= \\sec x$.' },
+              { label: 'Answer', content: '$$\\sec y = (\\sin x + C)\\cos x$$' },
             ],
           },
         ],
@@ -478,124 +388,328 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 7 — BERNOULLI
-  // ═══════════════════════════════════════════════════════════════════
+  // =====================================================================
+  // CH 7 -- EXACT DIFFERENTIAL EQUATIONS
+  // =====================================================================
   {
-    slug: 'bernoulli',
-    title: "Bernoulli's Equation",
-    order: 7,
-    ref: 'H.K. Dass — Section 3.10, p.150',
-    summary: "Bernoulli form: dy/dx + Py = Qyⁿ. Substitute z = y^(1-n) to linearize.",
-    sections: [
-      {
-        title: 'Bernoulli Form & Reduction',
-        body: "**Standard Bernoulli form:**\n$$\\frac{dy}{dx} + P(x)\\,y = Q(x)\\,y^n \\quad (n \\neq 0, 1)$$\nThis is non-linear due to $y^n$. The trick is a substitution that converts it to linear.\n\n**Reduction (H.K. Dass §3.10):**\n1. Divide both sides by $y^n$: $\\quad y^{-n}\\frac{dy}{dx} + P\\cdot y^{1-n} = Q$\n2. Let $z = y^{1-n}$, so $\\frac{dz}{dx} = (1-n)y^{-n}\\frac{dy}{dx}$\n3. Substitute: DE becomes linear in z:\n$$\\frac{dz}{dx} + (1-n)P\\,z = (1-n)Q$$\n4. Solve using I.F. method, then back-substitute $z = y^{1-n}$",
-        sideNote: 'When n = 0, the Bernoulli equation is already linear (just the standard linear DE). When n = 1, divide by y to get a separable equation. The Bernoulli substitution is only needed for n ≠ 0, 1.',
-        examples: [
-          {
-            label: 'Example 1',
-            difficulty: 'medium',
-            problem: "Solve $\\frac{dy}{dx} - \\frac{y}{x} = -\\frac{y^2}{x^2}$.",
-            steps: [
-              { label: 'Identify n = 2', content: 'P = -1/x, Q = -1/x², n = 2' },
-              { label: 'Divide by y²', content: '$y^{-2}\\frac{dy}{dx} - \\frac{y^{-1}}{x} = -\\frac{1}{x^2}$' },
-              { label: 'Let z = y^{1-2} = y^{-1} = 1/y', content: '$\\frac{dz}{dx} = -y^{-2}\\frac{dy}{dx}$, so multiplying by -1:' },
-              { label: 'Linear DE in z', content: '$\\frac{dz}{dx} + \\frac{z}{x} = \\frac{1}{x^2}$' },
-              { label: 'I.F. = x (P = 1/x)', content: '$\\frac{d}{dx}(xz) = \\frac{1}{x}$' },
-              { label: 'Integrate', content: '$xz = \\ln|x| + C$' },
-              { label: 'Back-substitute z = 1/y', content: '$$\\frac{x}{y} = \\ln|x| + C$$' },
-            ],
-          },
-          {
-            label: 'Example 2 (H.K. Dass Ex.13)',
-            difficulty: 'hard',
-            problem: 'Solve $x^2\\,dy + y(x+y)\\,dx = 0$.',
-            steps: [
-              { label: 'Divide by x² dx', content: '$\\frac{dy}{dx} = -\\frac{y(x+y)}{x^2} = -\\frac{y}{x} - \\frac{y^2}{x^2}$' },
-              { label: 'Bernoulli with n=2, P=1/x, Q=-1/x²', content: '$\\frac{dy}{dx} + \\frac{y}{x} = -\\frac{y^2}{x^2}$' },
-              { label: 'Divide by y²', content: '$y^{-2}\\frac{dy}{dx} + \\frac{1}{xy} = -\\frac{1}{x^2}$' },
-              { label: 'z = 1/y, dz/dx = -y⁻²y\'', content: '$-\\frac{dz}{dx} + \\frac{z}{x} = -\\frac{1}{x^2} \\Rightarrow \\frac{dz}{dx} - \\frac{z}{x} = \\frac{1}{x^2}$' },
-              { label: 'I.F. = e^{-∫1/x dx} = 1/x', content: '$\\frac{d}{dx}\\left(\\frac{z}{x}\\right) = \\frac{1}{x^3}$' },
-              { label: 'Integrate', content: '$\\frac{z}{x} = \\int x^{-3}\\,dx = -\\frac{1}{2x^2} + C$' },
-              { label: 'Back-substitute z = 1/y', content: '$$\\frac{1}{xy} = -\\frac{1}{2x^2} + C \\Rightarrow \\frac{2}{xy} + \\frac{1}{x^2} = C$$' },
-            ],
-          },
-          {
-            label: 'Example 3 — Product with y²',
-            difficulty: 'hard',
-            problem: 'Solve $\\frac{dy}{dx} + y = xy^2$.',
-            steps: [
-              { label: 'Identify Bernoulli form', content: 'This is Bernoulli with $n=2$, $P(x) = 1$, $Q(x) = x$' },
-              { label: 'Divide by y²', content: '$y^{-2}\\frac{dy}{dx} + y^{-1} = x$' },
-              { label: 'Let z = y^{-1} = 1/y', content: '$\\frac{dz}{dx} = -y^{-2}\\frac{dy}{dx}$, so $-\\frac{dz}{dx} + z = x$' },
-              { label: 'Multiply by -1', content: '$\\frac{dz}{dx} - z = -x$ (linear in z)' },
-              { label: 'I.F. = $e^{\\int (-1) dx} = e^{-x}$', content: '$\\frac{d}{dx}(e^{-x}z) = -xe^{-x}$' },
-              { label: 'Integrate RHS by parts: $u=x$, $dv=e^{-x}dx$', content: '$e^{-x}z = \\int -xe^{-x}\\,dx = xe^{-x} + e^{-x} + C$' },
-              { label: 'Divide by $e^{-x}$', content: '$z = x + 1 + Ce^x$' },
-              { label: 'Back-substitute z = 1/y', content: '$$\\frac{1}{y} = x + 1 + Ce^x$$' },
-              { label: 'Final answer', content: '$$y = \\frac{1}{x + 1 + Ce^x}$$' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  // ═══════════════════════════════════════════════════════════════════
-  // CH 8 — EXACT
-  // ═══════════════════════════════════════════════════════════════════
-  {
-    slug: 'exact-de',
+    slug: 'exact',
     title: 'Exact Differential Equations',
-    order: 8,
-    ref: 'H.K. Dass — Section 3.11, p.154',
-    summary: 'A DE M dx + N dy = 0 is exact if ∂M/∂y = ∂N/∂x. Solution found by direct integration.',
+    order: 7,
+    ref: 'H.K. Dass 3.11-3.12',
+    summary: 'M dx + N dy = 0 is exact if dM/dy = dN/dx. The solution: integrate M w.r.t. x (y constant) plus the y-only terms of N integrated w.r.t. y.',
     sections: [
       {
-        title: 'Exactness Condition & Working Rule',
-        body: 'A DE written as $M\\,dx + N\\,dy = 0$ is **exact** if there exists a function $F(x,y)$ such that:\n$$dF = \\frac{\\partial F}{\\partial x}\\,dx + \\frac{\\partial F}{\\partial y}\\,dy = M\\,dx + N\\,dy$$\nThis means $F_x = M$ and $F_y = N$.\n\n**Condition for exactness** (H.K. Dass §3.11):\n$$\\frac{\\partial M}{\\partial y} = \\frac{\\partial N}{\\partial x}$$\n\n**Working Rule:**\n1. Check the exactness condition\n2. Integrate M w.r.t. x (keeping y constant) → call it $f(x,y)$\n3. Identify terms in N that are **not** in $\\frac{\\partial f}{\\partial y}$ → integrate those w.r.t. y → call it $g(y)$\n4. Solution: $f(x,y) + g(y) = C$',
-        sideNote: 'The solution is just $F(x,y) = C$. Step 2 recovers the x-part of F, and step 3 picks up any y-only terms that Step 2 missed.',
+        title: 'Exactness and Solution',
+        body: '$M\\,dx + N\\,dy = 0$ is **exact** if $\\frac{\\partial M}{\\partial y} = \\frac{\\partial N}{\\partial x}$.\n\n**How to Solve:**\n1. Verify: $\\partial M/\\partial y = \\partial N/\\partial x$.\n2. Integrate $M$ w.r.t. $x$ (y constant) $\\to I_1$.\n3. From $N$, identify terms without $x$. Integrate w.r.t. $y$ $\\to I_2$.\n4. Solution: $I_1 + I_2 = C$.',
+      },
+      {
+        title: 'Integrating Factors',
+        body: 'If not exact, multiply by an I.F.:\n\n**Rule 1:** If $(\\partial M/\\partial y - \\partial N/\\partial x)/N = f(x)$, then I.F. $= e^{\\int f(x)\\,dx}$.\n**Rule 2:** If $(\\partial N/\\partial x - \\partial M/\\partial y)/M = g(y)$, then I.F. $= e^{\\int g(y)\\,dy}$.\n**Rule 3:** If $M = yf_1(xy)$, $N = xf_2(xy)$, then I.F. $= 1/(Mx - Ny)$.\n**Rule 5:** If homogeneous and $Mx + Ny \\neq 0$, then I.F. $= 1/(Mx + Ny)$.',
         examples: [
           {
-            label: 'Example 1',
+            label: 'Example 1 (Exact)',
             difficulty: 'easy',
-            problem: 'Solve $(2x + y)\\,dx + (x + 2y)\\,dy = 0$.',
+            problem: 'Solve $(5x^4 + 3x^2y^2 - 2xy^3)dx + (2x^3y - 3x^2y^2 - 5y^4)dy = 0$.',
             steps: [
-              { label: 'Identify M and N', content: '$M = 2x+y$, $\\quad N = x+2y$' },
-              { label: 'Check exactness', content: '$\\frac{\\partial M}{\\partial y} = 1$, $\\quad \\frac{\\partial N}{\\partial x} = 1$ ✓ Exact.' },
-              { label: 'Integrate M w.r.t. x (y constant)', content: '$f = \\int (2x+y)\\,dx = x^2 + xy$' },
-              { label: 'Differentiate f w.r.t. y', content: '$\\frac{\\partial f}{\\partial y} = x$' },
-              { label: 'Find missing N terms: N - ∂f/∂y = 2y - x... wait', content: 'Compare with N = x+2y: the x part is captured, missing = 2y' },
-              { label: 'Integrate missing term w.r.t. y', content: '$g(y) = \\int 2y\\,dy = y^2$' },
-              { label: 'Solution', content: '$$x^2 + xy + y^2 = C$$' },
-            ],
-          },
-          {
-            label: 'Example 2 (H.K. Dass Ex.21)',
-            difficulty: 'medium',
-            problem: 'Solve $(5x^4 + 3x^2y^2 - 2xy^3)\\,dx + (2x^3y - 3x^2y^2 - 5y^4)\\,dy = 0$.',
-            steps: [
-              { label: 'Check ∂M/∂y', content: '$\\frac{\\partial M}{\\partial y} = 6x^2y - 6xy^2$' },
-              { label: 'Check ∂N/∂x', content: '$\\frac{\\partial N}{\\partial x} = 6x^2y - 6xy^2$ ✓ Exact.' },
-              { label: 'Integrate M w.r.t. x (y constant)', content: '$f = x^5 + x^3y^2 - x^2y^3$' },
-              { label: 'Compare ∂f/∂y with N', content: '$\\frac{\\partial f}{\\partial y} = 2x^3y - 3x^2y^2$; N has extra $-5y^4$' },
-              { label: 'Integrate -5y⁴ w.r.t. y', content: '$g(y) = -y^5$' },
+              { label: 'Verify', content: '$\\partial M/\\partial y = 6x^2y - 6xy^2 = \\partial N/\\partial x$. Exact.' },
+              { label: 'Integrate M w.r.t. x', content: '$x^5 + x^3y^2 - x^2y^3$.' },
+              { label: 'N terms without x', content: '$-5y^4 \\to -y^5$.' },
               { label: 'Solution', content: '$$x^5 + x^3y^2 - x^2y^3 - y^5 = C$$' },
             ],
           },
           {
-            label: 'Example 3',
+            label: 'Example 2 (Using Rule 5 I.F.)',
             difficulty: 'hard',
-            problem: 'Solve $\\left(\\frac{y}{x} + 6x\\right)dx + (\\ln x - 2)\\,dy = 0$.',
+            problem: 'Solve $(x^3 + y^3)dx - xy^2\\,dy = 0$.',
             steps: [
-              { label: 'M = y/x + 6x, N = ln x - 2', content: '' },
-              { label: 'Check ∂M/∂y = 1/x', content: '$\\frac{\\partial M}{\\partial y} = \\frac{1}{x}$' },
-              { label: 'Check ∂N/∂x = 1/x', content: '$\\frac{\\partial N}{\\partial x} = \\frac{1}{x}$ ✓ Exact.' },
-              { label: 'Integrate M w.r.t. x', content: '$f = \\int (\\frac{y}{x}+6x)\\,dx = y\\ln x + 3x^2$' },
-              { label: 'Find ∂f/∂y and compare with N', content: '$\\frac{\\partial f}{\\partial y} = \\ln x$; N = $\\ln x - 2$; missing: $-2$' },
-              { label: 'Integrate -2 w.r.t. y', content: '$g(y) = -2y$' },
-              { label: 'Solution', content: '$$y\\ln x + 3x^2 - 2y = C$$' },
+              { label: 'Homogeneous, degree 3', content: '$Mx + Ny = x^4 \\neq 0$. I.F. $= 1/x^4$.' },
+              { label: 'Multiply and verify exact', content: '$(1/x + y^3/x^4)dx - (y^2/x^3)dy = 0$. Now exact.' },
+              { label: 'Solution', content: '$$\\ln|x| - y^3/(3x^3) = C$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 8 -- SECOND ORDER LINEAR DEs WITH CONSTANT COEFFICIENTS
+  // =====================================================================
+  {
+    slug: 'second-order',
+    title: 'Second Order Linear DEs with Constant Coefficients',
+    order: 8,
+    ref: 'H.K. Dass 3.18-3.25',
+    summary: 'For ay\'\' + by\' + cy = R(x), the complete solution is y = C.F. + P.I. The C.F. comes from the auxiliary equation; the P.I. depends on the form of R(x).',
+    sections: [
+      {
+        title: 'The Complementary Function',
+        body: 'General form: $ay\'\' + by\' + cy = R(x)$. Solution: $y = \\text{C.F.} + \\text{P.I.}$\n\nFor C.F., set $R = 0$, assume $y = e^{mx}$. Get the **Auxiliary Equation**: $am^2 + bm + c = 0$.\n\n**Case I -- Distinct real roots $m_1, m_2$:** C.F. $= C_1 e^{m_1 x} + C_2 e^{m_2 x}$\n**Case II -- Repeated roots $m, m$:** C.F. $= (C_1 + C_2 x)e^{mx}$\n**Case III -- Complex roots $\\alpha \\pm i\\beta$:** C.F. $= e^{\\alpha x}[C_1\\cos\\beta x + C_2\\sin\\beta x]$',
+        sideNote: 'The A.E. is just a quadratic. Use the quadratic formula if factoring is difficult.',
+      },
+      {
+        title: 'Particular Integrals',
+        body: 'Write $f(D)y = R$ where $D = d/dx$. Then P.I. $= R/f(D)$.\n\n**Type 1: $R = e^{ax}$** $\\to$ P.I. $= e^{ax}/f(a)$. If $f(a) = 0$, multiply by $x$.\n**Type 2: $R = \\sin ax$ or $\\cos ax$** $\\to$ Replace $D^2$ by $-a^2$. If 0 results, multiply by $x$.\n**Type 3: $R = x^n$** $\\to$ Expand $[f(D)]^{-1}$ by binomial series.\n**Type 4: $R = e^{ax}\\phi(x)$** $\\to$ P.I. $= e^{ax} \\cdot \\phi(x)/f(D+a)$ (exponential shift).',
+        examples: [
+          {
+            label: 'Example 1 (Distinct roots)',
+            difficulty: 'easy',
+            problem: 'Solve $y\'\' - 8y\' + 15y = 0$.',
+            steps: [
+              { label: 'A.E.', content: '$(m-3)(m-5) = 0$.' },
+              { label: 'Answer', content: '$$y = C_1 e^{3x} + C_2 e^{5x}$$' },
+            ],
+          },
+          {
+            label: 'Example 2 (P.I. with e^ax)',
+            difficulty: 'medium',
+            problem: 'Solve $(D^2 + 6D + 9)y = 5e^{3x}$.',
+            steps: [
+              { label: 'A.E.', content: '$(m+3)^2 = 0$. C.F. $= (C_1 + C_2 x)e^{-3x}$.' },
+              { label: 'P.I.', content: '$5e^{3x}/(9+18+9) = 5e^{3x}/36$.' },
+              { label: 'Answer', content: '$$y = (C_1 + C_2 x)e^{-3x} + 5e^{3x}/36$$' },
+            ],
+          },
+          {
+            label: 'Example 3 (Failure case)',
+            difficulty: 'hard',
+            problem: 'Solve $(D^2 + 4)y = \\cos 2x$.',
+            steps: [
+              { label: 'C.F.', content: '$A\\cos 2x + B\\sin 2x$.' },
+              { label: 'P.I. fails', content: '$\\cos 2x/(-4+4) = 0/0$. Multiply by $x$.' },
+              { label: 'Answer', content: '$$y = A\\cos 2x + B\\sin 2x + (x/4)\\sin 2x$$' },
+            ],
+          },
+          {
+            label: 'Example 4 (Exponential shift)',
+            difficulty: 'hard',
+            problem: 'Solve $(D^2 - 4D + 4)y = x^3 e^{2x}$.',
+            steps: [
+              { label: 'C.F.', content: '$(C_1 + C_2 x)e^{2x}$.' },
+              { label: 'Exponential shift', content: 'P.I. $= e^{2x} \\cdot x^3/D^2$. Integrate $x^3$ twice: $x^5/20$.' },
+              { label: 'Answer', content: '$$y = (C_1 + C_2 x)e^{2x} + (x^5/20)e^{2x}$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 9 -- CAUCHY-EULER EQUATIONS
+  // =====================================================================
+  {
+    slug: 'cauchy-euler',
+    title: 'Cauchy-Euler Equations',
+    order: 9,
+    ref: 'H.K. Dass 3.28',
+    summary: 'A Cauchy-Euler equation has variable coefficients as powers of x. Substitute x = e^z to convert it into a constant-coefficient equation.',
+    sections: [
+      {
+        title: 'The Transformation',
+        body: 'Form: $x^2 y\'\' + axy\' + by = f(x)$.\n\nPut $x = e^z$ (so $z = \\ln x$, $D = d/dz$).\n\n**Rules:** $xy\' = Dy$, $x^2 y\'\' = D(D-1)y$, $x^3 y\'\'\' = D(D-1)(D-2)y$.\n\nAfter substitution, solve the constant-coefficient equation in $z$, then replace $z = \\ln x$.',
+        examples: [
+          {
+            label: 'Example 1',
+            difficulty: 'easy',
+            problem: 'Solve $x^2 y\'\' + xy\' + y = \\sin(2\\ln x)$.',
+            steps: [
+              { label: 'Substitute', content: '$(D^2+1)y = \\sin 2z$. C.F. $= C_1\\cos z + C_2\\sin z$.' },
+              { label: 'P.I.', content: '$\\sin 2z/(-4+1) = -\\sin 2z/3$.' },
+              { label: 'Answer', content: '$$y = C_1\\cos(\\ln x) + C_2\\sin(\\ln x) - \\tfrac{1}{3}\\sin(2\\ln x)$$' },
+            ],
+          },
+          {
+            label: 'Example 2',
+            difficulty: 'medium',
+            problem: 'Solve $x^2 y\'\' - 2xy\' - 4y = x^4$.',
+            steps: [
+              { label: 'Substitute', content: '$(D^2-3D-4)y = e^{4z}$. Roots: $m = 4, -1$.' },
+              { label: 'P.I. fails (m=4 is root)', content: 'Multiply by $z$: P.I. $= ze^{4z}/5$.' },
+              { label: 'Answer', content: '$$y = C_1/x + C_2 x^4 + (x^4\\ln x)/5$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 10 -- VARIATION OF PARAMETERS
+  // =====================================================================
+  {
+    slug: 'variation-parameters',
+    title: 'Variation of Parameters',
+    order: 10,
+    ref: 'H.K. Dass 3.30',
+    summary: 'Works for ANY second-order linear DE. Especially useful when R(x) is sec x, tan x, cosec x, or log x where standard operator methods fail.',
+    sections: [
+      {
+        title: 'The Method',
+        body: 'Given C.F. $= Ay_1 + By_2$, the P.I. $= uy_1 + vy_2$ where:\n$$u = \\int \\frac{-y_2 R}{W}\\,dx, \\quad v = \\int \\frac{y_1 R}{W}\\,dx$$\nwhere $W = y_1 y_2\' - y_1\' y_2$ is the **Wronskian**.',
+        examples: [
+          {
+            label: 'Example 1',
+            difficulty: 'medium',
+            problem: 'Solve $y\'\' + y = \\csc x$.',
+            steps: [
+              { label: 'C.F.', content: '$y_1 = \\cos x, y_2 = \\sin x, W = 1$.' },
+              { label: 'u and v', content: '$u = -x$, $v = \\ln|\\sin x|$.' },
+              { label: 'Answer', content: '$$y = C_1\\cos x + C_2\\sin x - x\\cos x + \\sin x\\ln|\\sin x|$$' },
+            ],
+          },
+          {
+            label: 'Example 2',
+            difficulty: 'medium',
+            problem: 'Solve $y\'\' + y = \\tan x$.',
+            steps: [
+              { label: 'C.F.', content: '$y_1 = \\cos x, y_2 = \\sin x, W = 1$.' },
+              { label: 'Compute u', content: '$u = \\sin x - \\ln|\\sec x + \\tan x|$.' },
+              { label: 'Compute v', content: '$v = -\\cos x$.' },
+              { label: 'P.I. simplifies to', content: '$-\\cos x\\ln|\\sec x + \\tan x|$.' },
+              { label: 'Answer', content: '$$y = A\\cos x + B\\sin x - \\cos x\\ln|\\sec x + \\tan x|$$' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 11 -- SIMULTANEOUS DIFFERENTIAL EQUATIONS
+  // =====================================================================
+  {
+    slug: 'simultaneous',
+    title: 'Simultaneous Differential Equations',
+    order: 11,
+    ref: 'H.K. Dass 3.31',
+    summary: 'When two dependent variables are functions of a single independent variable with linked derivatives, eliminate one variable to get a single ODE, solve, then back-substitute.',
+    sections: [
+      {
+        title: 'Working Rule',
+        body: '1. Write equations using $D = d/dt$.\n2. Eliminate $y$ (or $x$) algebraically.\n3. Solve the resulting single ODE.\n4. Find the other variable by substituting back into an ORIGINAL equation.',
+        sideNote: 'Always find the second variable by substituting back. Do not solve from scratch.',
+        examples: [
+          {
+            label: 'Example 1',
+            difficulty: 'easy',
+            problem: 'Solve $dx/dt = y + 1$, $dy/dt = x + 1$.',
+            steps: [
+              { label: 'Eliminate y', content: '$(D^2 - 1)x = 1$. A.E.: $m = \\pm 1$.' },
+              { label: 'x', content: '$x = c_1 e^t + c_2 e^{-t} - 1$.' },
+              { label: 'y from equation (1)', content: '$y = c_1 e^t - c_2 e^{-t} - 1$.' },
+            ],
+          },
+          {
+            label: 'Example 2',
+            difficulty: 'medium',
+            problem: 'Solve $dx/dt + y = \\sin t$, $dy/dt + x = \\cos t$, with $y(0) = 0, x(0) = 2$.',
+            steps: [
+              { label: 'Eliminate to get', content: '$(D^2 - 1)y = -2\\sin t$.' },
+              { label: 'Solve', content: '$y = C_1 e^t + C_2 e^{-t} + \\sin t$.' },
+              { label: 'Apply conditions', content: '$C_1 = -1, C_2 = 1$.' },
+              { label: 'Answer', content: '$x = e^t + e^{-t}$, $y = -e^t + e^{-t} + \\sin t$.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // =====================================================================
+  // CH 12 -- APPLICATIONS OF DIFFERENTIAL EQUATIONS
+  // =====================================================================
+  {
+    slug: 'applications',
+    title: 'Applications of Differential Equations',
+    order: 12,
+    ref: 'H.K. Dass 3.14-3.17',
+    summary: 'DEs model real-world phenomena: electrical circuits, Newton\'s cooling, orthogonal trajectories, population growth/decay, spring-mass systems, and more.',
+    sections: [
+      {
+        title: 'Electrical Circuits',
+        body: '**L-R Series Circuit:** $L\\frac{di}{dt} + Ri = E$. Solution: $i = \\frac{E}{R}[1 - e^{-Rt/L}]$.\n\n**R-C Series Circuit:** $R\\frac{dq}{dt} + q/C = E$.',
+        examples: [
+          {
+            label: 'Circuit Example',
+            difficulty: 'medium',
+            problem: 'R = 15 ohms, L = 10 H, E = 90 V. Find current after 2 seconds.',
+            steps: [
+              { label: 'DE', content: '$di/dt + 1.5i = 9$. Solution: $i = 6(1 - e^{-1.5t})$.' },
+              { label: 'At t = 2', content: '$i = 6(1 - e^{-3}) \\approx 5.70$ A.' },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Newton's Law of Cooling",
+        body: '$\\frac{dT}{dt} = k(T - T_{\\text{surr}})$. Solution: $T - T_{\\text{surr}} = Ae^{kt}$.',
+        examples: [
+          {
+            label: 'Cooling Example',
+            difficulty: 'medium',
+            problem: 'Body cools from 100C to 75C in 1 min (air at 25C). Find T at 3 min.',
+            steps: [
+              { label: 'Setup', content: '$T - 25 = 75e^{kt}$. At $t=1$: $e^k = 2/3$.' },
+              { label: 'At t = 3', content: '$T = 25 + 75(2/3)^3 \\approx 47.22$C.' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Orthogonal Trajectories',
+        body: 'Two families are orthogonal trajectories if they cut at right angles.\n\n**Rule:** Find DE of family, replace $dy/dx$ by $-dx/dy$, solve.',
+        examples: [
+          {
+            label: 'OT of xy = c',
+            difficulty: 'easy',
+            problem: 'Find the orthogonal trajectories of $xy = c$.',
+            steps: [
+              { label: 'DE of family', content: '$dy/dx = -y/x$. Replace: $dy/dx = x/y$.' },
+              { label: 'Solve', content: '$y^2 - x^2 = C$ (hyperbolas).' },
+            ],
+          },
+          {
+            label: 'OT of y = ax^2',
+            difficulty: 'medium',
+            problem: 'Find OT of the parabolas $y = ax^2$.',
+            steps: [
+              { label: 'DE', content: '$y\' = 2y/x$. OT: $y\' = -x/(2y)$.' },
+              { label: 'Solve', content: '$$x^2 + 2y^2 = C \\text{ (ellipses)}$$' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Growth, Decay, and Other Applications',
+        body: '$dy/dt = ky$. Solution: $y = y_0 e^{kt}$. Growth if $k > 0$, decay if $k < 0$.',
+        examples: [
+          {
+            label: 'Population',
+            difficulty: 'easy',
+            problem: 'Population doubles in 50 years. When does it triple?',
+            steps: [
+              { label: 'Find k', content: '$k = \\ln 2/50$.' },
+              { label: 'Tripling time', content: '$t = 50\\ln 3/\\ln 2 \\approx 79.25$ years.' },
+            ],
+          },
+          {
+            label: 'Decay',
+            difficulty: 'easy',
+            problem: 'Radium: 5% gone in 50 years. How much after 100 years?',
+            steps: [
+              { label: 'At 50 years', content: '$e^{-50k} = 0.95$.' },
+              { label: 'At 100 years', content: '$(0.95)^2 = 0.9025$. Answer: **90.25%** remains.' },
+            ],
+          },
+          {
+            label: 'Spring-mass',
+            difficulty: 'medium',
+            problem: 'Solve $x\'\' + 4x = 0$ with $x(0) = 3, x\'(0) = 0$.',
+            steps: [
+              { label: 'A.E.', content: '$m = \\pm 2i$. $x = A\\cos 2t + B\\sin 2t$.' },
+              { label: 'Apply conditions', content: '$A = 3, B = 0$.' },
+              { label: 'Answer', content: '$$x = 3\\cos 2t$$' },
             ],
           },
         ],

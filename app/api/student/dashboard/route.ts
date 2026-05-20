@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth-better'
 import { db } from '@/lib/db'
 import { progress, quizAttempts, certSubmissions } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
+import { CHAPTERS } from '@/lib/chapters'
 
 /**
  * GET /api/student/dashboard
@@ -51,11 +52,11 @@ export async function GET(req: NextRequest) {
       .limit(1)
 
     // Calculate stats
-    const totalChapters = 8
+    const totalChapters = CHAPTERS.length
     const chaptersRead = allProgress.filter(p => p.completed).length
     const chaptersInProgress = allProgress.filter(p => !p.completed).length
     
-    const totalQuizzes = 8
+    const totalQuizzes = CHAPTERS.length
     const quizzesPassed = allQuizzes.filter(q => q.passed).length
     
     const overallProgress = Math.round((chaptersRead / totalChapters) * 100)

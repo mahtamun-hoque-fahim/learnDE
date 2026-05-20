@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 const STATS = [
-  { target: 8,   display: (n: number) => String(n).padStart(2, '0'), suffix: '',   label: 'Chapters' },
-  { target: 42,  display: (n: number) => String(n),                  suffix: '+',  label: 'Quiz problems' },
-  { target: 3,   display: (n: number) => String(n) + 'h',            suffix: '',   label: 'Avg. completion' },
+  { target: 12,  display: (n: number) => String(n).padStart(2, '0'), suffix: '',   label: 'Chapters' },
+  { target: 120, display: (n: number) => String(n),                  suffix: '+',  label: 'Quiz problems' },
+  { target: 5,   display: (n: number) => String(n) + 'h',            suffix: '',   label: 'Avg. completion' },
   { target: 120, display: (n: number) => String(n),                  suffix: '+',  label: 'Users' },
 ]
 
