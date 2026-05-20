@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/auth'
 import { getDb } from '@/lib/db'
-import { certSubmissions, staffUsers, users, certificates } from '@/lib/db/schema'
+import { certSubmissions, staffProfiles, users, certificates } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendNewSubmissionAlert } from '@/lib/email'
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
 async function notifyStaff(db: ReturnType<typeof import('@/lib/db').getDb>, session: { id: number }, data: { displayName: string; university: string; department: string }) {
   try {
-    const staff = await db!.select().from(staffUsers).where(eq(staffUsers.active, true))
+    const staff = await db!.select().from(staffProfiles).where(eq(staffProfiles.active, true))
     const emails = staff.map(s => s.email).filter(Boolean)
     const [sub] = await db!.select().from(certSubmissions).where(eq(certSubmissions.userId, session.id)).limit(1)
     if (emails.length && sub) {

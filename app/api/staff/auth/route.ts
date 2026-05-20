@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getDb } from '@/lib/db'
-import { staffUsers } from '@/lib/db/schema'
+import { staffProfiles } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { signStaffToken, StaffSession } from '@/lib/staff-auth'
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!username || !password) return NextResponse.json({ error: 'Required' }, { status: 400 })
   const db = getDb()
   if (!db) return NextResponse.json({ error: 'DB unavailable' }, { status: 503 })
-  const [staff] = await db.select().from(staffUsers).where(eq(staffUsers.username, username)).limit(1)
+  const [staff] = await db.select().from(staffProfiles).where(eq(staffProfiles.username, username)).limit(1)
   if (!staff || !staff.active) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
   const ok = await bcrypt.compare(password, staff.password)
   if (!ok) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
