@@ -1,5 +1,4 @@
 import {
-  IconHome,
   IconBook,
   IconQuiz,
   IconProgress,
@@ -10,6 +9,7 @@ import {
   IconSettings,
   IconAnnouncements,
 } from '@/app/components/dashboard/Icons'
+import { LogoIcon } from '@/app/components/Logo'
 import type { NavItem } from '@/app/components/dashboard/DashboardLayout'
 
 /**
@@ -23,7 +23,7 @@ import type { NavItem } from '@/app/components/dashboard/DashboardLayout'
 
 export function getAdminNavItems(): NavItem[] {
   return [
-    { label: 'Overview',  href: '/admin',           icon: <IconHome /> },
+    { label: 'Overview',  href: '/admin',           icon: <LogoIcon /> },
     { label: 'Users',     href: '/admin/users',     icon: <IconUsers /> },
     { label: 'Staff',     href: '/admin/staff',     icon: <IconStaff /> },
     { label: 'Courses',   href: '/admin/courses',   icon: <IconBook /> },
@@ -34,7 +34,7 @@ export function getAdminNavItems(): NavItem[] {
 
 export function getStaffNavItems(): NavItem[] {
   return [
-    { label: 'Overview',      href: '/staff',               icon: <IconHome /> },
+    { label: 'Overview',      href: '/staff',               icon: <LogoIcon /> },
     { label: 'Students',      href: '/staff/students',      icon: <IconUsers /> },
     { label: 'Chapters',      href: '/staff/chapters',      icon: <IconBook /> },
     { label: 'Quizzes',       href: '/staff/quizzes',       icon: <IconQuiz /> },
@@ -45,7 +45,7 @@ export function getStaffNavItems(): NavItem[] {
 
 export function getStudentNavItems(opts: { pendingQuizzes?: number } = {}): NavItem[] {
   return [
-    { label: 'Dashboard',   href: '/dashboard',   icon: <IconHome /> },
+    { label: 'Dashboard',   href: '/dashboard',   icon: <LogoIcon /> },
     { label: 'Chapters',    href: '/learn',       icon: <IconBook /> },
     {
       label: 'Quizzes',

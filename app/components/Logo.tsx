@@ -7,6 +7,29 @@ interface LogoProps {
   size?: number
 }
 
+/**
+ * Bare logo image — no Link wrapper, no margin.
+ * Use inside <NavItem icon={...}> where the parent <a> already
+ * handles navigation. Sized to fit the 15px nav icon slot by default.
+ *
+ * Note: the underlying SVG has fill="white" baked in, so this won't
+ * inherit text-color. Active highlighting on nav items happens via
+ * background/border, which is the correct affordance for a brand mark.
+ */
+export function LogoIcon({ size = 15 }: { size?: number }) {
+  return (
+    <Image
+      src="/logo.svg"
+      alt=""
+      aria-hidden="true"
+      width={size}
+      height={size}
+      priority
+      style={{ display: 'block' }}
+    />
+  )
+}
+
 // Mark only — used on all inner pages
 export function LogoMark({ size = 36, href = '/' }: { size?: number; href?: string }) {
   return (
