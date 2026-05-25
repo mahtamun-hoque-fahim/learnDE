@@ -24,6 +24,11 @@ interface DashboardData {
     totalQuizzes: number
     overallProgress: number
     streak: number
+    deltas: {
+      chaptersRead: number
+      quizzesPassed: number
+      overallProgress: number
+    }
   }
   continueData: {
     chapterNum: number
@@ -140,34 +145,47 @@ export default function StudentDashboard() {
     },
   ]
 
+  const formatDelta = (n: number, suffix = '') => {
+    if (n === 0) return { value: 'No change', positive: true }
+    const sign = n > 0 ? '+' : ''
+    return { value: `${sign}${n}${suffix}`, positive: n >= 0 }
+  }
+
+  const streakDelta =
+    data.stats.streak === 0
+      ? { value: 'Start one!', positive: false }
+      : data.stats.streak === 1
+        ? { value: 'Day 1', positive: true }
+        : { value: `${data.stats.streak} day run`, positive: true }
+
   const stats = [
     {
       label: 'Chapters Read',
       value: String(data.stats.chaptersRead),
       unit: `/ ${data.stats.totalChapters}`,
       color: 'mint' as const,
-      delta: { value: '+1', positive: true },
+      delta: formatDelta(data.stats.deltas.chaptersRead),
     },
     {
       label: 'Quizzes Passed',
       value: String(data.stats.quizzesPassed),
       unit: `/ ${data.stats.totalQuizzes}`,
       color: 'blue' as const,
-      delta: { value: '+1', positive: true },
+      delta: formatDelta(data.stats.deltas.quizzesPassed),
     },
     {
       label: 'Overall Progress',
       value: String(data.stats.overallProgress),
       unit: '%',
       color: 'amber' as const,
-      delta: { value: '+5%', positive: true },
+      delta: formatDelta(data.stats.deltas.overallProgress, '%'),
     },
     {
       label: 'Streak',
       value: String(data.stats.streak),
       unit: 'days',
       color: 'rose' as const,
-      delta: { value: 'Active', positive: data.stats.streak > 0 },
+      delta: streakDelta,
     },
   ]
 

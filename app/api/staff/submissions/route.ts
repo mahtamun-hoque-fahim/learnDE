@@ -1,18 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth-better'
+import { getServerSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
 import { certSubmissions, users, certificates } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { sendCertificateReady, sendRejectionNotice } from '@/lib/email'
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
 /**
  * GET /api/staff/submissions
- * Returns all certificate submissions for staff to review
+ * Returns all certificate submissions for staff to review.
+ *
+ * stats:
+ *   - pending, underReview, approved      → real counts by status
+ *   - thisMonth                            → approved submissions reviewed this calendar month
+ *   - avgReviewHours                       → average hours between submission and review
+ *   - deltas.pending                       → submissions received this week vs prior week
+ *   - deltas.approved                      → approvals this week vs prior week
+ *   - deltas.thisMonth                     → this month vs last month
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: req.headers })
+    const session = await getServerSession()
     if (!session || (session.user.role !== 'staff' && session.user.role !== 'admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -45,38 +55,86 @@ export async function GET(req: NextRequest) {
     const pending = submissions.filter(s => s.status === 'pending').length
     const underReview = submissions.filter(s => s.status === 'under_review').length
     const approved = submissions.filter(s => s.status === 'approved').length
-    
+
     const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * DAY_MS)
+    const twoWeeksAgo = new Date(now.getTime() - 14 * DAY_MS)
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
     const thisMonth = submissions.filter(
-      s => s.status === 'approved' && s.reviewedAt && s.reviewedAt >= firstDayOfMonth
+      s => s.status === 'approved' && s.reviewedAt && s.reviewedAt >= firstDayOfMonth,
+    ).length
+    const lastMonth = submissions.filter(
+      s =>
+        s.status === 'approved' &&
+        s.reviewedAt &&
+        s.reviewedAt >= firstDayOfLastMonth &&
+        s.reviewedAt < firstDayOfMonth,
     ).length
 
+    // Weekly windows
+    const submittedThisWeek = submissions.filter(
+      s => s.submittedAt && s.submittedAt >= weekAgo,
+    ).length
+    const submittedPriorWeek = submissions.filter(
+      s => s.submittedAt && s.submittedAt >= twoWeeksAgo && s.submittedAt < weekAgo,
+    ).length
+    const approvedThisWeek = submissions.filter(
+      s => s.status === 'approved' && s.reviewedAt && s.reviewedAt >= weekAgo,
+    ).length
+    const approvedPriorWeek = submissions.filter(
+      s =>
+        s.status === 'approved' &&
+        s.reviewedAt &&
+        s.reviewedAt >= twoWeeksAgo &&
+        s.reviewedAt < weekAgo,
+    ).length
+
+    // Avg review turnaround (hours) — across all reviewed submissions
+    const reviewed = submissions.filter(
+      s => s.reviewedAt && s.submittedAt && s.status !== 'pending',
+    )
+    const avgReviewHours =
+      reviewed.length > 0
+        ? Math.round(
+            reviewed.reduce(
+              (acc, s) =>
+                acc +
+                (s.reviewedAt!.getTime() - s.submittedAt!.getTime()) /
+                  (1000 * 60 * 60),
+              0,
+            ) / reviewed.length,
+          )
+        : 0
+
     const formattedSubmissions = submissions.map(sub => {
-      const now = new Date()
       const submitted = sub.submittedAt ? new Date(sub.submittedAt) : now
       const hoursAgo = Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60))
       const daysAgo = Math.floor(hoursAgo / 24)
-      
-      let timeAgo: string
-      if (hoursAgo < 1) {
-        timeAgo = 'Just now'
-      } else if (hoursAgo < 24) {
-        timeAgo = `${hoursAgo} ${hoursAgo === 1 ? 'hour' : 'hours'} ago`
-      } else if (daysAgo === 1) {
-        timeAgo = 'Yesterday'
-      } else {
-        timeAgo = `${daysAgo} days ago`
-      }
 
-      return {
-        ...sub,
-        submittedAgo: timeAgo,
-      }
+      let timeAgo: string
+      if (hoursAgo < 1) timeAgo = 'Just now'
+      else if (hoursAgo < 24) timeAgo = `${hoursAgo} ${hoursAgo === 1 ? 'hour' : 'hours'} ago`
+      else if (daysAgo === 1) timeAgo = 'Yesterday'
+      else timeAgo = `${daysAgo} days ago`
+
+      return { ...sub, submittedAgo: timeAgo }
     })
 
     return NextResponse.json({
-      stats: { pending, underReview, approved, thisMonth },
+      stats: {
+        pending,
+        underReview,
+        approved,
+        thisMonth,
+        avgReviewHours,
+        deltas: {
+          pending: submittedThisWeek - submittedPriorWeek,
+          approved: approvedThisWeek - approvedPriorWeek,
+          thisMonth: thisMonth - lastMonth,
+        },
+      },
       submissions: formattedSubmissions,
     })
   } catch (error) {
@@ -91,7 +149,7 @@ export async function GET(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: req.headers })
+    const session = await getServerSession()
     if (!session || (session.user.role !== 'staff' && session.user.role !== 'admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

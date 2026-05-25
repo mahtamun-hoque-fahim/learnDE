@@ -24,6 +24,12 @@ interface StaffData {
     underReview: number
     approved: number
     thisMonth: number
+    avgReviewHours: number
+    deltas: {
+      pending: number
+      approved: number
+      thisMonth: number
+    }
   }
   submissions: Submission[]
 }
@@ -155,30 +161,43 @@ export default function StaffDashboard() {
     },
   ]
 
+  const formatDelta = (n: number) => {
+    if (n === 0) return { value: 'No change', positive: true }
+    const sign = n > 0 ? '+' : ''
+    return { value: `${sign}${n}`, positive: n >= 0 }
+  }
+
+  const reviewLabel =
+    data.stats.avgReviewHours === 0
+      ? { value: 'No reviews yet', positive: true }
+      : data.stats.avgReviewHours < 24
+        ? { value: `${data.stats.avgReviewHours} hrs avg`, positive: true }
+        : { value: `${Math.round(data.stats.avgReviewHours / 24)} days avg`, positive: false }
+
   const stats = [
     {
       label: 'Pending Submissions',
       value: String(data.stats.pending),
       color: 'mint' as const,
-      delta: { value: '+2', positive: true },
+      delta: formatDelta(data.stats.deltas.pending),
     },
     {
       label: 'Under Review',
       value: String(data.stats.underReview),
       color: 'blue' as const,
-      delta: { value: '2 hrs avg', positive: false },
+      delta: reviewLabel,
     },
     {
       label: 'Approved',
       value: String(data.stats.approved),
       color: 'amber' as const,
-      delta: { value: '+3', positive: true },
+      delta: formatDelta(data.stats.deltas.approved),
     },
     {
       label: 'This Month',
       value: String(data.stats.thisMonth),
       color: 'rose' as const,
-      delta: { value: '+8', positive: true },
+      delta: formatDelta(data.stats.deltas.thisMonth),
     },
   ]
 

@@ -25,8 +25,21 @@ interface AdminData {
     staff: number
     admins: number
     activeThisWeek: number
+    completionRate: number
+    deltas: {
+      totalUsers: number
+      activeThisWeek: number
+      staff: number
+      completionRate: number
+    }
   }
   users: User[]
+}
+
+function formatDelta(n: number, suffix = ''): { value: string; positive: boolean } {
+  if (n === 0) return { value: 'No change', positive: true }
+  const sign = n > 0 ? '+' : ''
+  return { value: `${sign}${n}${suffix}`, positive: n >= 0 }
 }
 
 export default function AdminDashboard() {
@@ -157,26 +170,26 @@ export default function AdminDashboard() {
       label: 'Total Users',
       value: String(data.stats.totalUsers),
       color: 'mint' as const,
-      delta: { value: '+12', positive: true },
+      delta: formatDelta(data.stats.deltas.totalUsers),
     },
     {
       label: 'Active This Week',
       value: String(data.stats.activeThisWeek),
       color: 'blue' as const,
-      delta: { value: '+5', positive: true },
+      delta: formatDelta(data.stats.deltas.activeThisWeek),
     },
     {
       label: 'Staff Members',
       value: String(data.stats.staff),
       color: 'amber' as const,
-      delta: { value: '+1', positive: true },
+      delta: formatDelta(data.stats.deltas.staff),
     },
     {
       label: 'Completion Rate',
-      value: '62',
+      value: String(data.stats.completionRate),
       unit: '%',
       color: 'rose' as const,
-      delta: { value: '+3%', positive: true },
+      delta: formatDelta(data.stats.deltas.completionRate, '%'),
     },
   ]
 
@@ -295,7 +308,7 @@ export default function AdminDashboard() {
               {data.stats.students}
             </div>
             <div className="text-[11px] text-[#8A938E] mt-1">
-              {Math.round((data.stats.students / data.stats.totalUsers) * 100)}% of total
+              {data.stats.totalUsers > 0 ? Math.round((data.stats.students / data.stats.totalUsers) * 100) : 0}% of total
             </div>
           </Card>
 
@@ -305,7 +318,7 @@ export default function AdminDashboard() {
               {data.stats.staff}
             </div>
             <div className="text-[11px] text-[#8A938E] mt-1">
-              {Math.round((data.stats.staff / data.stats.totalUsers) * 100)}% of total
+              {data.stats.totalUsers > 0 ? Math.round((data.stats.staff / data.stats.totalUsers) * 100) : 0}% of total
             </div>
           </Card>
 
@@ -315,7 +328,7 @@ export default function AdminDashboard() {
               {data.stats.admins}
             </div>
             <div className="text-[11px] text-[#8A938E] mt-1">
-              {Math.round((data.stats.admins / data.stats.totalUsers) * 100)}% of total
+              {data.stats.totalUsers > 0 ? Math.round((data.stats.admins / data.stats.totalUsers) * 100) : 0}% of total
             </div>
           </Card>
         </div>

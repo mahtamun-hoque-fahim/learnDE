@@ -1,27 +1,53 @@
 import { auth } from './auth-better'
 import { headers } from 'next/headers'
+import { db } from './db'
+import { users } from './db/schema'
+import { eq, and, or, isNull, lt, sql } from 'drizzle-orm'
 
 export type Session = typeof auth.$Infer.Session
 
 /**
- * Get current session on the server
- * Use in Server Components, API routes, and Server Actions
- * 
+ * Fire-and-forget activity ping. Updates users.last_active_at if the prior value
+ * is older than 5 minutes (or null). The WHERE clause does the throttling
+ * server-side so we never burn a write on a freshly-touched row.
+ */
+async function touchLastActive(userId: string): Promise<void> {
+  try {
+    await db
+      .update(users)
+      .set({ lastActiveAt: new Date() })
+      .where(
+        and(
+          eq(users.id, userId),
+          or(
+            isNull(users.lastActiveAt),
+            lt(users.lastActiveAt, sql`NOW() - INTERVAL '5 minutes'`),
+          ),
+        ),
+      )
+  } catch (err) {
+    // Activity tracking must never break the request path.
+    console.error('touchLastActive failed:', err)
+  }
+}
+
+/**
+ * Get current session on the server.
+ * Side effect: pings users.last_active_at (throttled to once per 5 min) so the
+ * admin dashboard can show real "active this week" counts.
+ *
+ * Use in Server Components, API routes, and Server Actions.
+ *
  * @returns Session object with user info, or null if not authenticated
- * @example
- * ```typescript
- * const session = await getServerSession()
- * if (!session) {
- *   redirect('/login')
- * }
- * ```
  */
 export async function getServerSession(): Promise<Session | null> {
   try {
     const headersList = await headers()
-    const session = await auth.api.getSession({
-      headers: headersList,
-    })
+    const session = await auth.api.getSession({ headers: headersList })
+    if (session?.user?.id) {
+      // Don't await; activity tracking should never delay the response.
+      void touchLastActive(session.user.id)
+    }
     return session
   } catch (error) {
     console.error('Failed to get session:', error)

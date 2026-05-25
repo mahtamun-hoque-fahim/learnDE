@@ -1,167 +1,173 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth-better'
+import { getServerSession } from '@/lib/auth-server'
 import { db } from '@/lib/db'
 import { progress, quizAttempts, certSubmissions } from '@/lib/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { CHAPTERS } from '@/lib/chapters'
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function startOfDay(d: Date): Date {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
+/**
+ * Compute a daily-activity streak. Returns the number of consecutive days
+ * (counting back from today, inclusive) on which the user did SOMETHING:
+ * viewed a chapter, completed a chapter, or attempted a quiz.
+ *
+ * Today counts if there's any activity today. Otherwise the streak starts
+ * yesterday (if yesterday had activity) and counts backward from there.
+ */
+function computeStreak(activityTimestamps: Date[]): number {
+  if (activityTimestamps.length === 0) return 0
+
+  // Bucket activity into distinct local days.
+  const dayKeys = new Set<number>()
+  for (const t of activityTimestamps) {
+    dayKeys.add(startOfDay(t).getTime())
+  }
+
+  const today = startOfDay(new Date()).getTime()
+  // Anchor: today if today is in the set, else yesterday.
+  let cursor = dayKeys.has(today) ? today : today - DAY_MS
+  if (!dayKeys.has(cursor)) return 0
+
+  let streak = 0
+  while (dayKeys.has(cursor)) {
+    streak++
+    cursor -= DAY_MS
+  }
+  return streak
+}
 
 /**
  * GET /api/student/dashboard
- * Returns all data needed for student dashboard:
- * - Stats (chapters read, quizzes passed, overall progress, streak)
- * - Continue learning (last chapter)
- * - Chapter progress list
- * - Recent quiz attempts
- * - Certificate status
+ * Returns student dashboard data with real-only values (no literals).
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    // Get session
-    const session = await auth.api.getSession({
-      headers: req.headers,
-    })
-
+    const session = await getServerSession()
     if (!session || session.user.role !== 'student') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = session.user.id
 
-    // Fetch all chapter progress
-    const allProgress = await db
-      .select()
-      .from(progress)
-      .where(eq(progress.userId, userId))
+    const [allProgress, allQuizzes, cert] = await Promise.all([
+      db.select().from(progress).where(eq(progress.userId, userId)),
+      db
+        .select()
+        .from(quizAttempts)
+        .where(eq(quizAttempts.userId, userId))
+        .orderBy(desc(quizAttempts.attemptedAt)),
+      db
+        .select()
+        .from(certSubmissions)
+        .where(eq(certSubmissions.userId, userId))
+        .orderBy(desc(certSubmissions.submittedAt))
+        .limit(1),
+    ])
 
-    // Fetch all quiz attempts
-    const allQuizzes = await db
-      .select()
-      .from(quizAttempts)
-      .where(eq(quizAttempts.userId, userId))
-      .orderBy(desc(quizAttempts.attemptedAt))
-
-    // Fetch certificate submission status
-    const certSubmission = await db
-      .select()
-      .from(certSubmissions)
-      .where(eq(certSubmissions.userId, userId))
-      .orderBy(desc(certSubmissions.submittedAt))
-      .limit(1)
-
-    // Calculate stats
     const totalChapters = CHAPTERS.length
-    const chaptersRead = allProgress.filter(p => p.completed).length
-    const chaptersInProgress = allProgress.filter(p => !p.completed).length
-    
     const totalQuizzes = CHAPTERS.length
+    const chaptersRead = allProgress.filter(p => p.completed).length
     const quizzesPassed = allQuizzes.filter(q => q.passed).length
-    
-    const overallProgress = Math.round((chaptersRead / totalChapters) * 100)
+    const overallProgress = Math.round(
+      ((chaptersRead + quizzesPassed) / (totalChapters * 2)) * 100,
+    )
 
-    // Calculate streak (simplified - days with activity)
-    const today = new Date()
-    const recentActivity = allProgress
-      .filter(p => p.lastViewedAt)
-      .map(p => p.lastViewedAt!)
-      .sort((a, b) => b.getTime() - a.getTime())
-    
-    let streak = 0
-    if (recentActivity.length > 0) {
-      const lastActivity = recentActivity[0]
-      const daysSinceActivity = Math.floor(
-        (today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24)
-      )
-      if (daysSinceActivity <= 1) {
-        streak = 5 // Simplified streak calculation
-      }
-    }
+    // Week-over-week deltas
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * DAY_MS)
+    const chaptersReadThisWeek = allProgress.filter(
+      p => p.completed && p.completedAt && p.completedAt >= weekAgo,
+    ).length
+    const quizzesPassedThisWeek = allQuizzes.filter(
+      q => q.passed && q.attemptedAt && q.attemptedAt >= weekAgo,
+    ).length
 
-    // Get continue learning (last viewed chapter)
+    // Overall progress one week ago (using completedAt snapshot)
+    const chaptersReadPrior = allProgress.filter(
+      p => p.completed && p.completedAt && p.completedAt < weekAgo,
+    ).length
+    const quizzesPassedPrior = allQuizzes.filter(
+      q => q.passed && q.attemptedAt && q.attemptedAt < weekAgo,
+    ).length
+    const priorOverallProgress = Math.round(
+      ((chaptersReadPrior + quizzesPassedPrior) / (totalChapters * 2)) * 100,
+    )
+
+    // Real streak from all activity timestamps
+    const activityStamps: Date[] = [
+      ...allProgress.flatMap(p =>
+        [p.lastViewedAt, p.completedAt, p.startedAt].filter(
+          (d): d is Date => d != null,
+        ),
+      ),
+      ...allQuizzes.flatMap(q => (q.attemptedAt ? [q.attemptedAt] : [])),
+    ]
+    const streak = computeStreak(activityStamps)
+
+    // Continue learning: last viewed in-progress chapter
     const lastViewed = allProgress
       .filter(p => p.lastViewedAt && !p.completed)
       .sort((a, b) => b.lastViewedAt!.getTime() - a.lastViewedAt!.getTime())[0]
 
-    // Chapter list with status
-    const allChapters = [
-      'chapter-1-introduction-to-odes',
-      'chapter-2-first-order-odes',
-      'chapter-3-second-order-odes',
-      'chapter-4-partial-differential-equations',
-      'chapter-5-boundary-value-problems',
-      'chapter-6-laplace-transforms',
-      'chapter-7-fourier-series',
-      'chapter-8-numerical-methods',
-    ]
+    const continueData = lastViewed
+      ? {
+          chapterNum:
+            CHAPTERS.findIndex(c => c.slug === lastViewed.chapterSlug) + 1,
+          title:
+            CHAPTERS.find(c => c.slug === lastViewed.chapterSlug)?.title ??
+            lastViewed.chapterSlug,
+          slug: lastViewed.chapterSlug,
+          // Within-chapter progress: 0 if just started, 50 if quiz attempted, 100 if completed.
+          progress: allQuizzes.some(q => q.chapterSlug === lastViewed.chapterSlug)
+            ? 50
+            : 0,
+        }
+      : null
 
-    const chapterTitles = {
-      'chapter-1-introduction-to-odes': 'Introduction to ODEs',
-      'chapter-2-first-order-odes': 'First Order ODEs',
-      'chapter-3-second-order-odes': 'Second Order ODEs',
-      'chapter-4-partial-differential-equations': 'Partial Differential Equations',
-      'chapter-5-boundary-value-problems': 'Boundary Value Problems',
-      'chapter-6-laplace-transforms': 'Laplace Transforms',
-      'chapter-7-fourier-series': 'Fourier Series',
-      'chapter-8-numerical-methods': 'Numerical Methods',
-    }
-
-    const chaptersWithStatus = allChapters.map((slug, idx) => {
-      const progressItem = allProgress.find(p => p.chapterSlug === slug)
-      const quizItem = allQuizzes.find(q => q.chapterSlug === slug)
-      
+    // Full chapter list with status
+    const chaptersWithStatus = CHAPTERS.map((c, idx) => {
+      const p = allProgress.find(x => x.chapterSlug === c.slug)
+      const q = allQuizzes.find(x => x.chapterSlug === c.slug)
       return {
         num: idx + 1,
-        slug,
-        title: chapterTitles[slug as keyof typeof chapterTitles],
-        status: progressItem?.completed 
-          ? 'completed' 
-          : progressItem 
-            ? 'reading' 
-            : 'unread',
-        quiz: quizItem?.passed 
-          ? 'passed' 
-          : quizItem 
-            ? 'failed' 
-            : 'untaken',
+        slug: c.slug,
+        title: c.title,
+        status: p?.completed ? 'completed' : p ? 'reading' : 'unread',
+        quiz: q?.passed ? 'passed' : q ? 'failed' : 'untaken',
       }
     })
 
-    // Recent quiz attempts (last 5)
+    // Recent quizzes (last 5)
     const recentQuizzes = allQuizzes.slice(0, 5).map(q => {
-      const chapterNum = allChapters.indexOf(q.chapterSlug) + 1
-      const attemptedTime = q.attemptedAt ? q.attemptedAt.getTime() : today.getTime()
-      const daysAgo = Math.floor(
-        (today.getTime() - attemptedTime) / (1000 * 60 * 60 * 24)
-      )
-      
+      const chapterNum = CHAPTERS.findIndex(c => c.slug === q.chapterSlug) + 1
+      const attemptedTime = q.attemptedAt ? q.attemptedAt.getTime() : now.getTime()
+      const daysAgo = Math.floor((now.getTime() - attemptedTime) / DAY_MS)
       return {
         ch: chapterNum,
         score: Math.round((q.score / q.total) * 100),
         status: q.passed ? 'passed' : 'failed',
-        date: daysAgo === 0 
-          ? 'Today' 
-          : daysAgo === 1 
-            ? 'Yesterday' 
+        date:
+          daysAgo === 0
+            ? 'Today'
+            : daysAgo === 1
+            ? 'Yesterday'
             : `${daysAgo} days ago`,
       }
     })
 
-    // Certificate status
     const certStatus = {
-      canApply: chaptersRead === totalChapters && quizzesPassed === totalQuizzes,
-      submitted: certSubmission.length > 0,
-      status: certSubmission[0]?.status || null,
+      canApply:
+        chaptersRead === totalChapters && quizzesPassed === totalQuizzes,
+      submitted: cert.length > 0,
+      status: cert[0]?.status || null,
     }
-
-    // Continue learning card data
-    const continueData = lastViewed ? {
-      chapterNum: allChapters.indexOf(lastViewed.chapterSlug) + 1,
-      title: chapterTitles[lastViewed.chapterSlug as keyof typeof chapterTitles],
-      slug: lastViewed.chapterSlug,
-      progress: 43, // Simplified progress within chapter
-    } : null
 
     return NextResponse.json({
       stats: {
@@ -171,6 +177,11 @@ export async function GET(req: NextRequest) {
         totalQuizzes,
         overallProgress,
         streak,
+        deltas: {
+          chaptersRead: chaptersReadThisWeek,
+          quizzesPassed: quizzesPassedThisWeek,
+          overallProgress: overallProgress - priorOverallProgress,
+        },
       },
       continueData,
       chapters: chaptersWithStatus,
@@ -179,9 +190,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Student dashboard API error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
