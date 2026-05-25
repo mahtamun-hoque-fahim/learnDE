@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { getSession } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth-server'
 import { CHAPTERS } from '@/lib/chapters'
 import Globe from './components/Globe'
 import { LogoFull, LogoMark } from './components/Logo'
 import HeroStats from './components/HeroStats'
 
 export default async function HomePage() {
-  const session = await getSession()
+  const session = await getServerSession()
 
   const chapters = CHAPTERS.map((ch, i) => ({
     n: String(ch.order).padStart(2, '0'),

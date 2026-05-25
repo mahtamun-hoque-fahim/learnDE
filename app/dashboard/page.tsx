@@ -59,7 +59,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!isLoading && (!isSignedIn || role !== 'student')) {
-      router.push('/auth/sign-in')
+      router.push('/login')
     }
   }, [isLoading, isSignedIn, role, router])
 

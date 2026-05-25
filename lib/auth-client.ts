@@ -15,7 +15,6 @@ export const {
   signIn,
   signUp,
   signOut,
-  session,
   useSession,
   listAccounts,
   getSession,
@@ -26,4 +25,4 @@ export const {
 /**
  * Session type for TypeScript
  */
-export type Session = typeof authClient.$Inferred.Session
+export type Session = typeof authClient.$Infer.Session

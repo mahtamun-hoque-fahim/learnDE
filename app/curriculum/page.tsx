@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { LogoMark } from '@/app/components/Logo'
-import { getSession } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth-server'
 import { CHAPTERS } from '@/lib/chapters'
 import { getDb } from '@/lib/db'
 import { progress, quizAttempts } from '@/lib/db/schema'
@@ -8,19 +8,20 @@ import { eq } from 'drizzle-orm'
 import ChapterList from './ChapterList'
 
 export default async function LearnPage() {
-  const session = await getSession()
+  const session = await getServerSession()
   let completedChapters: string[] = []
   let passedQuizzes: string[] = []
 
   if (session) {
     const db = getDb()
     if (db) {
+      const userId = session.user.id
       const [prog, attempts] = await Promise.all([
-        db.select().from(progress).where(eq(progress.userId, session.id)),
-        db.select().from(quizAttempts).where(eq(quizAttempts.userId, session.id)),
+        db.select().from(progress).where(eq(progress.userId, userId)),
+        db.select().from(quizAttempts).where(eq(quizAttempts.userId, userId)),
       ])
-      completedChapters = prog.filter((p: {completed: boolean}) => p.completed).map((p: {chapterSlug: string}) => p.chapterSlug)
-      passedQuizzes = attempts.filter((a: {passed: boolean}) => a.passed).map((a: {chapterSlug: string}) => a.chapterSlug)
+      completedChapters = prog.filter(p => p.completed).map(p => p.chapterSlug)
+      passedQuizzes = attempts.filter(a => a.passed).map(a => a.chapterSlug)
     }
   }
 
@@ -47,7 +48,7 @@ export default async function LearnPage() {
           <div>
             {session ? (
               <Link href="/dashboard" style={{ fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>
-                {session.name.split(' ')[0]}
+                {session.user.name.split(' ')[0]}
               </Link>
             ) : (
               <Link href="/login" style={{ fontSize: 13, color: 'var(--mint)', textDecoration: 'none' }}>

@@ -4,19 +4,20 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Modal, ModalFooter, Button } from './Modal'
 
-interface Submission {
+export interface Submission {
   id: number
   userId: string
-  name: string
+  displayName: string
   email?: string
   university: string
   department: string
   batch: string
   gender: string
   phone?: string
-  studentId?: string
+  studentIdNo?: string
   note?: string
   submittedAt: string
+  submittedAgo?: string
   status: 'pending' | 'under_review' | 'approved' | 'rejected'
 }
 
@@ -116,7 +117,7 @@ export function ReviewSubmissionModal({
           <div className="grid grid-cols-2 gap-3 text-[12px]">
             <div>
               <div className="text-[#8A938E] mb-0.5">Student Name</div>
-              <div className="font-semibold">{submission.name}</div>
+              <div className="font-semibold">{submission.displayName}</div>
             </div>
             {submission.email && (
               <div>
@@ -146,10 +147,10 @@ export function ReviewSubmissionModal({
                 <div className="font-semibold">{submission.phone}</div>
               </div>
             )}
-            {submission.studentId && (
+            {submission.studentIdNo && (
               <div>
                 <div className="text-[#8A938E] mb-0.5">Student ID</div>
-                <div className="font-semibold">{submission.studentId}</div>
+                <div className="font-semibold">{submission.studentIdNo}</div>
               </div>
             )}
           </div>

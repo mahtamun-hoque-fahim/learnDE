@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionFromRequest } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth-server'
 import { getDb } from '@/lib/db'
-import { certSubmissions, staffProfiles, users, certificates } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { certSubmissions, certificates, users } from '@/lib/db/schema'
+import { eq, or } from 'drizzle-orm'
 import { sendNewSubmissionAlert } from '@/lib/email'
 
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+export async function GET() {
+  const session = await getServerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const db = getDb()
   if (!db) return NextResponse.json({ submission: null, certificate: null })
-  const [sub] = await db.select().from(certSubmissions).where(eq(certSubmissions.userId, session.id)).limit(1)
+
+  const userId = session.user.id
+  const [sub] = await db.select().from(certSubmissions).where(eq(certSubmissions.userId, userId)).limit(1)
   if (!sub) return NextResponse.json({ submission: null, certificate: null })
+
   let certificate = null
   if (sub.status === 'approved') {
     const [cert] = await db.select().from(certificates).where(eq(certificates.submissionId, sub.id)).limit(1)
@@ -21,42 +25,78 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+  const session = await getServerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const db = getDb()
   if (!db) return NextResponse.json({ error: 'DB unavailable' }, { status: 503 })
 
-  // One submission per student
-  const existing = await db.select().from(certSubmissions).where(eq(certSubmissions.userId, session.id)).limit(1)
+  const userId = session.user.id
+  const existing = await db
+    .select()
+    .from(certSubmissions)
+    .where(eq(certSubmissions.userId, userId))
+    .limit(1)
+
   if (existing.length > 0) {
-    const ex = existing[0]
-    // Allow re-submission only if rejected
-    if (ex.status !== 'rejected') return NextResponse.json({ error: 'Submission already exists', status: ex.status }, { status: 409 })
-    // Delete old rejected one and allow fresh
-    // (keep the same row, just reset it)
-    const body = await req.json()
-    await db.update(certSubmissions).set({ ...body, status: 'pending', reviewedBy: null, reviewNote: null, reviewedAt: null, quoteText: null, quoteAuthor: null, submittedAt: new Date() }).where(eq(certSubmissions.id, ex.id))
-    // Notify staff
-    await notifyStaff(db, session, body)
-    return NextResponse.json({ ok: true, resubmitted: true })
+    return NextResponse.json({ error: 'You have already submitted an application' }, { status: 409 })
   }
 
-  const { displayName, university, department, batch, gender, phone, studentIdNo, note } = await req.json()
-  if (!displayName || !university || !department || !gender) return NextResponse.json({ error: 'Required fields missing' }, { status: 400 })
+  const body = await req.json()
+  const {
+    displayName,
+    university,
+    department,
+    batch,
+    gender,
+    phone,
+    studentIdNo,
+    note,
+    quoteText,
+    quoteAuthor,
+  } = body
 
-  await db.insert(certSubmissions).values({ userId: session.id, displayName, university, department, batch: batch || null, gender, phone: phone || null, studentIdNo: studentIdNo || null, note: note || null, status: 'pending' })
+  if (!displayName || !university || !department || !gender) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
 
-  await notifyStaff(db, session, { displayName, university, department })
-  return NextResponse.json({ ok: true })
-}
+  const [sub] = await db
+    .insert(certSubmissions)
+    .values({
+      userId,
+      displayName,
+      university,
+      department,
+      batch,
+      gender,
+      phone,
+      studentIdNo,
+      note,
+      quoteText,
+      quoteAuthor,
+      status: 'pending',
+    })
+    .returning()
 
-async function notifyStaff(db: ReturnType<typeof import('@/lib/db').getDb>, session: { id: number }, data: { displayName: string; university: string; department: string }) {
+  // Fire-and-forget alert to staff
   try {
-    const staff = await db!.select().from(staffProfiles).where(eq(staffProfiles.active, true))
-    const emails = staff.map(s => s.email).filter(Boolean)
-    const [sub] = await db!.select().from(certSubmissions).where(eq(certSubmissions.userId, session.id)).limit(1)
-    if (emails.length && sub) {
-      await sendNewSubmissionAlert({ staffEmails: emails, studentName: data.displayName, university: data.university, department: data.department, submissionId: sub.id })
+    const staffRows = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(or(eq(users.role, 'staff'), eq(users.role, 'admin')))
+    const staffEmails = staffRows.map(r => r.email).filter(Boolean)
+    if (staffEmails.length > 0) {
+      await sendNewSubmissionAlert({
+        staffEmails,
+        studentName: displayName,
+        university,
+        department,
+        submissionId: sub.id,
+      })
     }
-  } catch {}
+  } catch (err) {
+    console.error('Failed to send submission alert:', err)
+  }
+
+  return NextResponse.json({ ok: true, submission: sub })
 }

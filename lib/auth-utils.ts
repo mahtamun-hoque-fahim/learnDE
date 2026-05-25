@@ -66,10 +66,11 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      // Better Auth's sign-out endpoint clears the session cookie server-side
+      await fetch('/api/auth/sign-out', { method: 'POST' })
       setSession(null)
       setIsSignedIn(false)
-      router.push('/auth/sign-in')
+      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -97,12 +98,13 @@ export function useAuth() {
 export function useCanAccess() {
   const { role } = useAuth()
 
-  const canAccessStudent = () => ['student', 'staff', 'admin'].includes(role || '')
-  const canAccessStaff = () => ['staff', 'admin'].includes(role || '')
+  const canAccessStudent = () => role ? ['student', 'staff', 'admin'].includes(role) : false
+  const canAccessStaff = () => role ? ['staff', 'admin'].includes(role) : false
   const canAccessAdmin = () => role === 'admin'
   const hasRole = (requiredRole: UserRole | UserRole[]) => {
+    if (!role) return false
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
-    return roles.includes(role || '')
+    return roles.includes(role)
   }
 
   return {

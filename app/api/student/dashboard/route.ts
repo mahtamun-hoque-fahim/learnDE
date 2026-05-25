@@ -131,8 +131,9 @@ export async function GET(req: NextRequest) {
     // Recent quiz attempts (last 5)
     const recentQuizzes = allQuizzes.slice(0, 5).map(q => {
       const chapterNum = allChapters.indexOf(q.chapterSlug) + 1
+      const attemptedTime = q.attemptedAt ? q.attemptedAt.getTime() : today.getTime()
       const daysAgo = Math.floor(
-        (today.getTime() - q.attemptedAt.getTime()) / (1000 * 60 * 60 * 24)
+        (today.getTime() - attemptedTime) / (1000 * 60 * 60 * 24)
       )
       
       return {

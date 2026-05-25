@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import { certificates, certSubmissions } from '@/lib/db/schema'
-import { getSessionFromRequest } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth-server'
 import { eq } from 'drizzle-orm'
 
-// Simple redirect: certificate data now comes from /api/submissions
-// This route exists for backwards compatibility
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromRequest(req)
+// Lightweight read endpoint kept for backwards compat with the dashboard.
+// Primary submission/cert data is served from /api/submissions.
+export async function GET() {
+  const session = await getServerSession()
   if (!session) return NextResponse.json({ eligible: false, reason: 'Not signed in' })
+
   const db = getDb()
   if (!db) return NextResponse.json({ eligible: false })
-  const [cert] = await db.select().from(certificates).where(eq(certificates.userId, session.id)).limit(1)
-  const [sub] = await db.select().from(certSubmissions).where(eq(certSubmissions.userId, session.id)).limit(1)
+
+  const userId = session.user.id
+  const [cert] = await db.select().from(certificates).where(eq(certificates.userId, userId)).limit(1)
+  const [sub] = await db.select().from(certSubmissions).where(eq(certSubmissions.userId, userId)).limit(1)
   return NextResponse.json({ eligible: !!cert, certificate: cert ?? null, submission: sub ?? null })
 }

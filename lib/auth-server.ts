@@ -1,7 +1,7 @@
 import { auth } from './auth-better'
 import { headers } from 'next/headers'
 
-export type Session = typeof auth.$Inferred.Session
+export type Session = typeof auth.$Infer.Session
 
 /**
  * Get current session on the server
@@ -12,7 +12,7 @@ export type Session = typeof auth.$Inferred.Session
  * ```typescript
  * const session = await getServerSession()
  * if (!session) {
- *   redirect('/auth/sign-in')
+ *   redirect('/login')
  * }
  * ```
  */
@@ -112,7 +112,7 @@ export async function getUserId(): Promise<string | null> {
  */
 export async function getUserRole(): Promise<'student' | 'staff' | 'admin' | null> {
   const session = await getServerSession()
-  return session?.user?.role || null
+  return (session?.user?.role as 'student' | 'staff' | 'admin' | undefined) || null
 }
 
 /**

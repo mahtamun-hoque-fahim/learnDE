@@ -4,7 +4,7 @@ import { DashboardLayout, type NavItem } from '@/app/components/dashboard/Dashbo
 import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader } from '@/app/components/dashboard/Cards'
-import { ReviewSubmissionModal } from '@/app/components/dashboard/ReviewSubmissionModal'
+import { ReviewSubmissionModal, type Submission } from '@/app/components/dashboard/ReviewSubmissionModal'
 import {
   IconHome,
   IconUsers,
@@ -17,23 +17,6 @@ import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-
-interface Submission {
-  id: number
-  userId: string
-  displayName: string
-  email?: string
-  university: string
-  department: string
-  batch: string
-  gender: string
-  phone?: string
-  studentIdNo?: string
-  note?: string
-  status: 'pending' | 'under_review' | 'approved' | 'rejected'
-  submittedAt: string
-  submittedAgo: string
-}
 
 interface StaffData {
   stats: {
@@ -55,7 +38,7 @@ export default function StaffDashboard() {
 
   useEffect(() => {
     if (!isLoading && (!isSignedIn || (role !== 'staff' && role !== 'admin'))) {
-      router.push('/auth/sign-in')
+      router.push('/login')
     }
   }, [isLoading, isSignedIn, role, router])
 

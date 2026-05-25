@@ -12,8 +12,8 @@ export async function middleware(req: NextRequest) {
   const publicRoutes = [
     '/',
     '/auth',
-    '/auth/sign-in',
-    '/auth/sign-up',
+    '/login',
+    '/register',
     '/api/auth', // All auth endpoints are public
   ]
 
@@ -53,7 +53,7 @@ export async function middleware(req: NextRequest) {
 
     if (!sessionToken) {
       // No session, redirect to sign-in
-      return NextResponse.redirect(new URL('/auth/sign-in', req.url))
+      return NextResponse.redirect(new URL('/login', req.url))
     }
 
     // Verify the session is valid
@@ -64,7 +64,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   } catch (error) {
     console.error('Middleware error:', error)
-    return NextResponse.redirect(new URL('/auth/sign-in', req.url))
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 }
 

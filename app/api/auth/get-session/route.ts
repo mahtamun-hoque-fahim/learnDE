@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
           role: session.user.role || 'student',
           createdAt: session.user.createdAt,
         },
-        expiresAt: session.expiresAt,
+        expiresAt: session.session.expiresAt,
       },
     })
   } catch (error) {

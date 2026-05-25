@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { Modal, ModalFooter, Button } from './Modal'
 
-interface User {
+export interface User {
   id: string
   name: string
   email: string
   role: 'student' | 'staff' | 'admin'
   active?: boolean
+  emailVerified?: boolean
   createdAt?: string
 }
 
@@ -16,7 +17,7 @@ interface UserEditModalProps {
   isOpen: boolean
   onClose: () => void
   user: User | null
-  onSave: (userId: string, updates: { role?: string; active?: boolean }) => Promise<void>
+  onSave: (userId: string, updates: { role?: 'student' | 'staff' | 'admin'; active?: boolean }) => Promise<void>
 }
 
 export function UserEditModal({

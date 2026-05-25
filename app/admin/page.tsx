@@ -4,7 +4,7 @@ import { DashboardLayout, type NavItem } from '@/app/components/dashboard/Dashbo
 import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader } from '@/app/components/dashboard/Cards'
-import { UserEditModal } from '@/app/components/dashboard/UserEditModal'
+import { UserEditModal, type User } from '@/app/components/dashboard/UserEditModal'
 import {
   IconHome,
   IconUsers,
@@ -17,16 +17,6 @@ import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-
-interface User {
-  id: string
-  name: string | null
-  email: string
-  role: 'student' | 'staff' | 'admin'
-  active: boolean
-  emailVerified: boolean
-  createdAt: string
-}
 
 interface AdminData {
   stats: {
@@ -49,7 +39,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!isLoading && (!isSignedIn || role !== 'admin')) {
-      router.push('/auth/sign-in')
+      router.push('/login')
     }
   }, [isLoading, isSignedIn, role, router])
 

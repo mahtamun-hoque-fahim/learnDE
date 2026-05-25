@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { LogoMark } from '@/app/components/Logo'
 import { useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', studentId: '' })
@@ -15,13 +16,16 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+      const { error: signUpError } = await authClient.signUp.email({
+        email: form.email,
+        password: form.password,
+        name: form.name,
       })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error); return }
+      if (signUpError) {
+        setError(signUpError.message || 'Sign-up failed')
+        return
+      }
+      // autoSignIn is enabled in auth-better.ts, so the session is already set.
       router.push('/dashboard')
     } catch {
       setError('Something went wrong')

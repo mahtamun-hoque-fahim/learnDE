@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     const formattedSubmissions = submissions.map(sub => {
       const now = new Date()
-      const submitted = new Date(sub.submittedAt)
+      const submitted = sub.submittedAt ? new Date(sub.submittedAt) : now
       const hoursAgo = Math.floor((now.getTime() - submitted.getTime()) / (1000 * 60 * 60))
       const daysAgo = Math.floor(hoursAgo / 24)
       

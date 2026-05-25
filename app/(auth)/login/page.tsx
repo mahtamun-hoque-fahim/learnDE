@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { LogoMark } from '@/app/components/Logo'
 import { useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -16,14 +17,22 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error); return }
-      router.push('/dashboard')
+      const { error: signInError } = await authClient.signIn.email({ email, password })
+      if (signInError) {
+        setError(signInError.message || 'Invalid credentials')
+        return
+      }
+      // Pull the fresh session to route by role.
+      const sessionRes = await fetch('/api/auth/get-session')
+      if (sessionRes.ok) {
+        const { session } = await sessionRes.json()
+        const role = session?.user?.role
+        if (role === 'admin') router.push('/admin')
+        else if (role === 'staff') router.push('/staff')
+        else router.push('/dashboard')
+      } else {
+        router.push('/dashboard')
+      }
     } catch {
       setError('Something went wrong')
     } finally {
