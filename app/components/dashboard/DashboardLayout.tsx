@@ -1,9 +1,10 @@
 'use client'
 
 import { useAuth, getUserInitials, getAvatarColor } from '@/lib/auth-utils'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import React from 'react'
+import { LogoMark } from '@/app/components/Logo'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -31,7 +32,18 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const { user, isLoading, isSignedIn, name, logout } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Auto-detect active nav item from current pathname.
+  // Longest matching href wins, so /admin/users beats /admin when on /admin/users.
+  const activeHref = (() => {
+    const candidates = navItems
+      .map(it => it.href.split('?')[0]) // strip query for matching
+      .filter(href => href === pathname || pathname.startsWith(href + '/'))
+      .sort((a, b) => b.length - a.length)
+    return candidates[0] ?? null
+  })()
 
   useEffect(() => {
     if (!isLoading && !isSignedIn) {
@@ -66,13 +78,7 @@ export function DashboardLayout({
       <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-[#0E1110] border-r border-[#1F2421] flex flex-col z-50">
         {/* Brand */}
         <div className="px-4 py-[18px] border-b border-[#1F2421] flex items-center gap-2.5">
-          <div className="w-8 h-8 border-[1.5px] border-[#F3F6F4] rounded-[9px] flex items-center justify-center font-mono text-[9px] relative flex-shrink-0">
-            <span className="flex flex-col items-start gap-px leading-none">
-              <i>d</i>
-              <i style={{ borderTop: '1px solid #F3F6F4', paddingTop: '1px', marginTop: '1px' }}>x</i>
-            </span>
-            <span className="absolute text-[#3DF49A] text-[15px] right-[2px] top-[-3px]">·</span>
-          </div>
+          <LogoMark size={32} href="/" />
           <span className="font-bold text-[14.5px] tracking-[-0.02em]">LearnDE</span>
         </div>
 
@@ -81,35 +87,38 @@ export function DashboardLayout({
           <div className="text-[9.5px] text-[#4A5450] uppercase tracking-[0.14em] px-2 py-2.5 mt-1">
             Main menu
           </div>
-          {navItems.map((item, idx) => (
-            <a
-              key={idx}
-              href={item.href}
-              className={`flex items-center gap-[9px] px-[10px] py-2 rounded-lg text-[13px] transition-all border border-transparent ${
-                item.active
-                  ? 'text-[#F3F6F4] bg-[rgba(61,244,154,0.11)] border-[rgba(61,244,154,0.22)]'
-                  : 'text-[#8A938E] hover:text-[#F3F6F4] hover:bg-[rgba(255,255,255,0.04)]'
-              }`}
-            >
-              <span className={`w-[15px] h-[15px] flex-shrink-0 ${item.active ? 'text-[#3DF49A]' : 'opacity-75'}`}>
-                {item.icon}
-              </span>
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <span
-                  className={`ml-auto text-[10px] font-bold px-1.5 py-px rounded-full ${
-                    item.badgeColor === 'red'
-                      ? 'bg-[rgba(242,107,107,0.1)] text-[#F26B6B]'
-                      : item.badgeColor === 'amber'
-                        ? 'bg-[rgba(245,168,92,0.1)] text-[#F5A85C]'
-                        : 'bg-[rgba(61,244,154,0.11)] text-[#3DF49A]'
-                  }`}
-                >
-                  {item.badge}
+          {navItems.map((item, idx) => {
+            const isActive = item.href.split('?')[0] === activeHref
+            return (
+              <a
+                key={idx}
+                href={item.href}
+                className={`flex items-center gap-[9px] px-[10px] py-2 rounded-lg text-[13px] transition-all border border-transparent ${
+                  isActive
+                    ? 'text-[#F3F6F4] bg-[rgba(61,244,154,0.11)] border-[rgba(61,244,154,0.22)]'
+                    : 'text-[#8A938E] hover:text-[#F3F6F4] hover:bg-[rgba(255,255,255,0.04)]'
+                }`}
+              >
+                <span className={`w-[15px] h-[15px] flex-shrink-0 ${isActive ? 'text-[#3DF49A]' : 'opacity-75'}`}>
+                  {item.icon}
                 </span>
-              )}
-            </a>
-          ))}
+                <span className="flex-1">{item.label}</span>
+                {item.badge && (
+                  <span
+                    className={`ml-auto text-[10px] font-bold px-1.5 py-px rounded-full ${
+                      item.badgeColor === 'red'
+                        ? 'bg-[rgba(242,107,107,0.1)] text-[#F26B6B]'
+                        : item.badgeColor === 'amber'
+                          ? 'bg-[rgba(245,168,92,0.1)] text-[#F5A85C]'
+                          : 'bg-[rgba(61,244,154,0.11)] text-[#3DF49A]'
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </a>
+            )
+          })}
         </nav>
 
         {/* User Section */}

@@ -5,14 +5,7 @@ import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader } from '@/app/components/dashboard/Cards'
 import { ReviewSubmissionModal, type Submission } from '@/app/components/dashboard/ReviewSubmissionModal'
-import {
-  IconHome,
-  IconUsers,
-  IconBook,
-  IconQuiz,
-  IconAnnouncements,
-  IconAnalytics,
-} from '@/app/components/dashboard/Icons'
+import { getStaffNavItems } from '@/lib/nav-items'
 import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -127,39 +120,7 @@ export default function StaffDashboard() {
     )
   }
 
-  const navItems: NavItem[] = [
-    {
-      label: 'Overview',
-      href: '/staff',
-      icon: <IconHome />,
-      active: true,
-    },
-    {
-      label: 'Students',
-      href: '/staff?tab=students',
-      icon: <IconUsers />,
-    },
-    {
-      label: 'Chapters',
-      href: '/staff?tab=chapters',
-      icon: <IconBook />,
-    },
-    {
-      label: 'Quizzes',
-      href: '/staff?tab=quizzes',
-      icon: <IconQuiz />,
-    },
-    {
-      label: 'Announcements',
-      href: '/staff?tab=announcements',
-      icon: <IconAnnouncements />,
-    },
-    {
-      label: 'Reports',
-      href: '/staff?tab=reports',
-      icon: <IconAnalytics />,
-    },
-  ]
+  const navItems: NavItem[] = getStaffNavItems()
 
   const formatDelta = (n: number) => {
     if (n === 0) return { value: 'No change', positive: true }

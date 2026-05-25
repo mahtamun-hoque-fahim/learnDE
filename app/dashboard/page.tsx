@@ -4,13 +4,7 @@ import { DashboardLayout, type NavItem } from '@/app/components/dashboard/Dashbo
 import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader, ContinueCard } from '@/app/components/dashboard/Cards'
-import {
-  IconHome,
-  IconBook,
-  IconQuiz,
-  IconProgress,
-  IconCertificate,
-} from '@/app/components/dashboard/Icons'
+import { getStudentNavItems } from '@/lib/nav-items'
 import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -113,37 +107,9 @@ export default function StudentDashboard() {
     )
   }
 
-  const navItems: NavItem[] = [
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-      icon: <IconHome />,
-      active: true,
-    },
-    {
-      label: 'Chapters',
-      href: '/learn',
-      icon: <IconBook />,
-    },
-    {
-      label: 'Quizzes',
-      href: '/quiz',
-      icon: <IconQuiz />,
-      badge: data.stats.totalQuizzes - data.stats.quizzesPassed > 0 
-        ? String(data.stats.totalQuizzes - data.stats.quizzesPassed) 
-        : undefined,
-    },
-    {
-      label: 'Progress',
-      href: '/dashboard?tab=progress',
-      icon: <IconProgress />,
-    },
-    {
-      label: 'Certificate',
-      href: '/certificate',
-      icon: <IconCertificate />,
-    },
-  ]
+  const navItems: NavItem[] = getStudentNavItems({
+    pendingQuizzes: data.stats.totalQuizzes - data.stats.quizzesPassed,
+  })
 
   const formatDelta = (n: number, suffix = '') => {
     if (n === 0) return { value: 'No change', positive: true }

@@ -5,14 +5,7 @@ import { Greeting } from '@/app/components/dashboard/Greeting'
 import { StatsRow } from '@/app/components/dashboard/StatsRow'
 import { Card, CardHeader } from '@/app/components/dashboard/Cards'
 import { UserEditModal, type User } from '@/app/components/dashboard/UserEditModal'
-import {
-  IconHome,
-  IconUsers,
-  IconStaff,
-  IconBook,
-  IconAnalytics,
-  IconSettings,
-} from '@/app/components/dashboard/Icons'
+import { getAdminNavItems } from '@/lib/nav-items'
 import { useAuth } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -131,39 +124,7 @@ export default function AdminDashboard() {
     )
   }
 
-  const navItems: NavItem[] = [
-    {
-      label: 'Overview',
-      href: '/admin',
-      icon: <IconHome />,
-      active: true,
-    },
-    {
-      label: 'Users',
-      href: '/admin?tab=users',
-      icon: <IconUsers />,
-    },
-    {
-      label: 'Staff',
-      href: '/admin?tab=staff',
-      icon: <IconStaff />,
-    },
-    {
-      label: 'Courses',
-      href: '/admin?tab=courses',
-      icon: <IconBook />,
-    },
-    {
-      label: 'Analytics',
-      href: '/admin?tab=analytics',
-      icon: <IconAnalytics />,
-    },
-    {
-      label: 'Settings',
-      href: '/admin?tab=settings',
-      icon: <IconSettings />,
-    },
-  ]
+  const navItems: NavItem[] = getAdminNavItems()
 
   const stats = [
     {
